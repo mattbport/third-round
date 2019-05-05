@@ -1,1 +1,2 @@
-SuperCollider classes and patches for the third and final round of user testing of Choosers.
+### Choosers: third round of user testing
+SuperCollider classes and patches for the third and final round of user testing.
