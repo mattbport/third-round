@@ -3,7 +3,7 @@ TimeChooser {
 	var <>noseCone;
 	var <>lanes;
 	var <>chosenLane;
-
+	var <>name;
 
 init{
 	lanes = List.new;
@@ -16,6 +16,24 @@ addLane{
 		this.lanes.add(aLane)}
 
 //======= Printing  ==========
+
+
+copy {
+	var me;
+	me = TimeChooser.new;
+		me.noseCone(this.noseCone);
+				me.lanes(this.lanes.copy); //deepcopy?
+				me.chosenLane(this.chosenLane.copy); //deepcopy?
+				me.name (this.name
+
+		);
+		^ me
+	}
+
+
+
+
+
 	printOn { | aStream |
 		aStream << "a " << this.class.name << " with lanes " << this.lanes;
 	    this.chosenLane.isNil.not.if(
@@ -34,7 +52,7 @@ noseConeTooBig{
 
 
 zeroWeightedLanes{
-		^ lanes.select { arg eachTimeLane, i ;  eachTimeLane.hasZeroWeight }
+		^ (lanes.select { arg eachTimeLane, i ;  eachTimeLane.hasZeroWeight }).asList
 	}
 
 allLaneWeightsZero{
@@ -137,5 +155,6 @@ laneNotChosenYet{
 
 
 	}
+
 
 

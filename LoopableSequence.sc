@@ -6,10 +6,14 @@ LoopableSequence{   // or sequencer better name? NO
 	var<> timeline;
 	var <>loop;              // this is for recursion
 	var < loopTimes;   // usually inf - but here prudent to always limit repeats to something finite
-	                              // else may crash the scheduler - since the server is not taling laod
-	                               // but we can still splat fullstop, it appears from testing  cerrent sequecne
+	                              // else may crash the scheduler - since the server is not taking the load
+	                               // but we can still splat fullstop
 	var <> loopMax;
 	var<> duration;       // could be basic duration  - but once chosen....
+	var<> name;
+	var <> hasParent ; // not used
+	var <> outBus;
+	var <> smartDuration ; // needed for nesting
 
 *new{
 		var me;
@@ -20,8 +24,31 @@ init{ choosers = List.new;
 		clocks = List.new;
 		loop = true;
 		loopTimes = 1;
-		loopMax = 6;
+		loopMax = 36;
 	}
+
+
+	copy {
+	var me;
+	me = LoopableSequence.new;
+		me.choosers(this.choosers.deepCopy);
+		me.clocks(this.clocks.deepCopy); //deepcopy?
+		me.timeline(this.timeline.deepCopy); //deepcopy?
+		me.loop(this.loop);
+		me.loopTimes(this.loopTimes);
+		me.loopMax (this.loopMax);
+		me.duration (this.duration);
+		me.name (this.name);
+		^ me
+       // define copy for lanes & sample & time chooser -  all needed for loopableSequence
+	}
+
+polyDurations{ // when diffetn choosers run at different tempos
+		this.cleanChoosers;
+		this.choosers.collect { arg eachChooser; eachChooser.xSmartDuration	};
+	}
+
+
 
 loopTimesIsOne{
 		^ (this.loopTimes ==1)  }
@@ -47,15 +74,26 @@ loopIsOff {
 		^(loopTimes ==1)
 	}
 
+unsolvedBug{}
 
+chosenLanesAsArray {
+		this.unsolvedBug{}
+		/* "needed for when a loopable sequence is playing role of xhooser
+             in a  loopeable sequence -  such as occurs in
+            riley apparently but should it be wrapped?"
+		"maybe second wrapping is so it can be repeated, but no need?" */
+		^ "see unsolvedBug"
 
-
+}
 
 add{arg aChooser;
 	this.choosers.add(aChooser)}
 
 addAll{arg aList;
 	this.choosers.addAll(aList)}
+
+allChosenSynths {
+		this.allSequencedSynths}  /// CAreful - dont think is infiite loop - just recursive
 
 allSequencedSynths{
 		var allOfThem = List.new;
@@ -67,7 +105,9 @@ schedule{arg aPauseInBeats,  aChooser;
 		var tClock;
 		tClock = TempoClock(SampleBank.tempo);
 		clocks.add(tClock);
-		tClock.sched ( aPauseInBeats, {  aChooser.playChosenLanes; nil  });
+		tClock.sched ( aPauseInBeats, {  aChooser.playChosen;   nil  });
+		   // was playchosenLanes
+aChooser.debug(aChooser.name);
 	     this.logEntry(aPauseInBeats, aChooser); // play prechosen, else choice not made till scheduled
 	}
 
@@ -88,8 +128,14 @@ printOn { | aStream |
 
 	//================== STOPPING==========
 
-	free { this.allSequencedSynths.do{ arg eachSynth, i; eachSynth.free}
+	basicFree { this.allSequencedSynths.do{ arg eachSynth, i; eachSynth.free; };
+		                this.choosers.do { arg each; each.free};
+                       this.choosers.do { arg each; each.stop};
+		// this.debug("freeing choosers inside loopable sequence")
+
 		}
+
+	free { this.basicFree}
 
 	stop { this.clocks.do{ arg eachClock, i; eachClock.stop}
 		}
@@ -98,7 +144,7 @@ printOn { | aStream |
 	clear { this.clocks.do{ arg eachClock, i; eachClock.clear}
 		}
 
-	kill{ this.free; this.stop; this.clear}
+	kill{ this.free; this.stop; this.clear  }
 
 
 //================== ENABLING RECURSION ==========
@@ -119,47 +165,69 @@ hasNoLoop {
 
 
 // =============== ENABLING RECURSION ==========
-//Wrapper diverts external play calls here for recursion
+//Wrapper diverts external play calls here for recursion - REALLY??
 //and wrapper renames normal plays as basic play
 
 nSequences { arg n;
-	   ^ Array.fill( n, {arg index; this}) }
+		var current, deep;
+		 current = this.choosers.copy;
+		 (n >1).if {
+			( n-1).do { current.addAll(this.choosers)}};
+		 deep = current.collect {arg each; each.copy} ;
+		 deep .do { arg each; each.choose; /*each.debug("chosenlanes") */ };
+		choosers = deep;
+		//choosers.choose;
+		^choosers
+
+
+	} // not copies? used by play chosen
+	// JUST PUT IN COPY FOR CLAPPING..... DID NOT HELP
+	// try other examples
 
 
 choose {   var sequenceDuration =0 ;
 		                       //choosers.debug("choosers in choose in Loopable");
-		        choosers.do{ |eachChooser| eachChooser.chooseLanes;
+		        choosers.do{ |eachChooser|
+			     eachChooser.isNil.if ( {}, {
+			eachChooser.choose; // was choose Lanes
 			                    //eachChooser.duration.isNil.if { eachChooser.inspect };
-			                    //eachChooser.name.debug("Choose before first sequenced play");
-			                    // eachChooser.duration.debug("NEW CHOICE");
-		   	                    //  eachChooser.duration.debug("Chooser duration as chosen");
-			                         sequenceDuration = sequenceDuration + eachChooser.duration};
+				                eachChooser.debug("The chooser");
+			                    eachChooser.name.debug("Choose before first sequenced play");
+			                     eachChooser.duration.debug("NEW CHOICE");
+		   	                    eachChooser.duration.debug("Chooser duration as chosen");
+				sequenceDuration = sequenceDuration + eachChooser.duration} );
+
 		           this.duration_(sequenceDuration);
-		//this.duration.debug("Unused sequence duration as set");
+			this.duration.debug(" sequence duration ")  }     }
+
 		//"===Ready to play above choices ====" .postln;
 		//"=========================".postln;
-
-	}	// duplicated in Xhooser wrapper
+		// duplicated in Xhooser wrapper
 
 	play{
 		//"=== FRESH PLAY OF SEQUENCE =====" .postln;
 		//"=========================".postln;
-
-		//this.debug("new choose in sequence");
+		   this.cleanChoosers;
            this.choose;
 	     // needed for fresh play, sequencing info & recursion
            ^ this.playChosen }
 
+	cleanChoosers {
+		this.choosers.removeAllSuchThat { arg eachItem;  eachItem.isNil  } }
 
 playChosen{
 		var arrayOfnThis;
      this.loopTimesIsOne.if{ ^ this.basicPlayChosen};
-		//this.debug("DOESNOT HAPPEN");
+		//this.debug("SEEMS LIKE A FIX");
 	 arrayOfnThis= this.nSequences(this.loopTimes);
-	 arrayOfnThis.inject( 0, { arg startTimeInBeats, eachDummySequence ;
-			"start time of iteration".postln;
+		this.basicPlayChosen
+
+	/*
+	 arrayOfnThis.inject( 0, { arg startTimeInBeats, eachUnusedDummySequence ;
+			"start time of sequence iteration".postln;
 			 startTimeInBeats.postln;
-			(startTimeInBeats + this.basicPlayChosenAt(startTimeInBeats))} )
+			this.basicPlayChosenAt(startTimeInBeats);
+			startTimeInBeats + this.duration} )   */
 	}
 
 
@@ -172,17 +240,20 @@ basicPlayChosenAt{
 		var offsetStartTime; //unused
 		timeline = List.new;
 		                      // choosers.size.debug("Choosers size in basicPlayChosenAt");
-		choosers.do{ |eachChooser| // eachChooser.name.debug("firing order");
-		^ choosers.inject(initialStartTime,{ arg nextStartTime, eachChooser;
+		    // choosers.do{ |eachChooser| // eachChooser.name.debug("firing order");
+		   choosers.inject(initialStartTime,{ arg nextStartTime, eachChooser;
+			                          var copyChooser =  eachChooser.copy;
 			                       	//offsetStartTime = initialStartTime + nextStartTime;
 			                        // schedule cumulative starttime with fixed offset from method argument
-				                   this.schedule(nextStartTime,  eachChooser );
-					               //  nextStartTime.debug("when actually sequenced");
-			                       // eachChooser.duration.debug(" replied  durations after  Sequenced");
-			                        nextStartTime + eachChooser.duration} ) }
+				                   this.schedule(nextStartTime,eachChooser );   // NOT THE COPY!!!!
+					                 // nextStartTime.debug("next item start time ");
+			                         // eachChooser.debug("this chooser");
+			                         //eachChooser.duration.debug(" next item duration");
+			                        nextStartTime + eachChooser.duration
+		} ) }
 	    // play returning duration of sequence is needed  for sequence with repeats to work sensibly
 	    //and need that for nested choosers to work - OH - read about scheduler basics....
 
-	}
 }
+
 

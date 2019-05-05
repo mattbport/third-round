@@ -7,6 +7,7 @@ Xhooser {
 	var <> journal ;
 	var <> name;
 	var <> hasParent;
+	var <> outBus;
 	var <> myclocks;  // maye be needed for nesting -NO !! in wrapper!!
 	   // but could record an event stream - instance of non det command pattern?
 	   // approx 1000 LOC total
@@ -22,26 +23,30 @@ init{
 
 *new { ^ super.new.init}
 
-
+/*
+	// Royally screws up clapping and loopable seqnecne
 copy {
 	var me;
 	me = Xhooser.new;
-		me.noseCone(this.noseCone);
-				me.lanes(this.lanes.copy); //deepcopy?
-				me.chosenLanes(this.chosenLanes.copy); //deepcopy?
-				me.timeChooser(this.timeChooser.copy); // copy
-				me.journal(this.journal.copy);
-				me.name (this.name);
+		me.noseCone_(this.noseCone);
+				me.lanes_(this.lanes.copy); //deepcopy?
+				me.chosenLanes_(this.chosenLanes.copy); //deepcopy?
+				me.timeChooser_(this.timeChooser.copy); // copy
+				me.journal_(this.journal.copy);
+		         me.hasParent_(this.hasParent.copy);
+				me.name_(this.name);
 		^ me
        // define copy for lanes & sample & time chooser -  all needed for loopableSequence
 	}
-
+*/
 
 
 // ====== LANE ADDING & REMOVAL  =========
 addLane{
 		arg aLane;
-		this.lanes.add(aLane)}
+		this.lanes.add(aLane);
+		// this.lanes.debug("lanes")
+	}
 
 //======= Printing  ==========
 	printOn { | aStream |
@@ -74,6 +79,7 @@ hasTooManyPriorityBoarders{
 		      ^ (this.priorityBoarders.size > noseCone)}
 
 hasTimeChooser{
+		// this.timeChooser.debug("time chooser");
 		^(this.timeChooser==nil).not
 	}
 
@@ -90,6 +96,13 @@ allChosenSynths{
 		^ this.chosenLanes.collect{ arg eachLane, i;  eachLane.synth}
 	}
 
+
+	allChosenSamples{
+		var chosenSamples;
+		chosenSamples = this.chosenLanes.collect{ arg eachLane, i;  eachLane.sample};
+		// chosenSamples.debug("collecting chosen samples for freeing");
+		^chosenSamples
+	}
 integrityCheck{
 		this.lanes.do {arg eachLane, index; eachLane.sample.isNil.if { "SampleBank not loaded".postln}}
 	}
@@ -107,7 +120,7 @@ finiteWeightedNonZeroLanes{
 nonZeroWeightedLanes {
 		var nzwl;
 		nzwl = this.lanes.reject({ arg eachLane, index; eachLane.hasZeroWeight});
-		^ nzwl
+		^ nzwl  // RETURNS ARRAY - so could not add playable time lane
 	}
 
 noOfLanesStillToPick{
@@ -197,12 +210,14 @@ nonDeterministicLaneChoice {
 	         }
 
 choose{
-		^ this.chooseLanes}  // needed to let loopableSequecne nest cleanly
+		^ this.chooseLanes}  // needed to let loopableSequence nest cleanly
 	                                     // protocol polymorphism
 
 
 	chooseLanes{
 		//this.name.debug("in chooseLanes in Chooser");
+
+		this.cleanLanes; // remove any nils from lists of lanes
 		this.hasActiveTimeChooser.if {  this.timeChooser.chooseLane  }; // EXCELLENT
 		this.nonDeterministicLaneChoice;
 		this.cleanChosenLanes;
@@ -215,6 +230,10 @@ choose{
         // Lane not scheduled  or played yet - just chosen
 		}
 
+	cleanLanes {
+				this.lanes.removeEvery(List[nil]);
+
+	}
 
 
 	cleanChosenLanes {
@@ -258,6 +277,11 @@ play {                 //  PRINCIPLE: multiple hits of plain play always produce
 		                  // journals previous choices,
 			this.chooseLanes;                         // empties out previous choices
 		    this.journal.add( \chosenLanes -> this.chosenLanes.asArray);
+		    this.outBus.debug("In Chooser"); // stereo
+		    this.outBus.isNil.not.if {
+			this.chosenLanes.debug("Hit chosen Lanes");
+			this.chosenLanes.do
+			{arg eachLane; eachLane.outBus_(this.outBus)}}; // stereo
 		    this.playChosenLanes                  // may be interesting if we go nested
 	}
 
@@ -270,14 +294,20 @@ resume{
 		this.chosenLanes.do  { |eachLane | eachLane.resume} }
 
 stop { this.free}
-	kill {this.stop  } //to give uniform nesting protovol in wrapper for nester Loopable S's }
+kill {this.stop  } //to give uniform nesting protovol in wrapper for nester Loopable S's }
 
-free { this.allChosenSynths.free}
+free { this.allChosenSynths.free;
+		this.allChosenSamples.do { arg each; each.free } } // Fixed clap2 !!!!
 
 
 //========= DURATION =========
 
+// smart durations not needed for lane to DO right thing but needed
+// in case this chooser is nested and it needs  to REPORT right thing
+// to enclosing seqiences or choosers
+
 calculateSmartDurationWithChosenTimeLane {
+		// this.debug("alculateSmartDurationWithChosenTimeLane");
 	   this.chosenLanes.do {|eachLane |
 			// eachLane.debug(" about to calculateSmartDurationWithChosenTimeLane");
 	         eachLane.calculateSmartDurationWithChosenTimeLaneForParent(this.chosenTimeLane)}}
@@ -287,9 +317,14 @@ calculateSmartDurationWithNoActiveTimeLane{
 	                     eachLane.calculateSmartDurationWithNoActiveTimeLane}}
 
 duration{                                   // sequencer calls this to find out when to sequence
-		this.lanesNotChosenYet.if {this.debug("No choices made yet  when queying Chooser duration- should not happen"); ^0};
-	^	this.maxLaneDuration
+		this.lanesNotChosenYet.if
+		    {this.debug("No choices made yet  when querying Chooser duration- should not happen"); ^0};
+	^	this.maxLaneDuration  // looks dubious - what if cut by timelane? - nah - looks OK
 	}
+
+durations{
+		this.lanes.do{ |eachLane| eachLane.sample.name.postln;
+			eachLane.sample.duration.postln;}}
 
 
 durationOfChosenTimeLane{                     //just  to lower coupling in lane
@@ -299,24 +334,43 @@ durationOfChosenTimeLane{                     //just  to lower coupling in lane
 
 maxLaneDuration{
 		var durations;
-
+		var max;
 		durations = chosenLanes.collect{ arg eachLane, i;  //eachLane.debug("max laneduration");
 			//eachLane.sample.name.debug("lane name in MAX");
 			//eachLane.smartDuration.debug(" lane smartduration in MAX");
 			eachLane.smartDuration};
 			//durations.debug("SMART DURATIONS OF EACH LANE GIVEN TO FIND MAX")
-		^durations.maxItem{arg item, i; item}
+		max = durations.maxItem{arg item, i; item};
+		// max.debug("max duration in chooser when checking duration");
+		//(max==inf).if {this.halt};
+		^max
 	}
 
 
-}
+
 
 // PROTOCOL NEEDS CHECKING FOR UNNEEDED FLUFF & CRUFT
 
+// used where different lanes have samples using different tempi,
+// so that smart durations in beats translate differently into seconds
+// as in clip wwrappers and nysteds. For obvious reasons, Lanes &
+//(why chooser wrappers?) also need to undersand
 
+xSmartDuration {
+		var  smartDurations;
+		var  inSeconds;
+		var  max;
+		//this.debug("in xhooser");
+	    smartDurations = this.chosenLanes.collect
+		        { arg eachLane ; eachLane.xSmartDuration.postln};
+        inSeconds =  smartDurations.collect
+		        { arg eachSmartDuration ; eachSmartDuration.asSeconds };
+	    max =  inSeconds.maxItem({ arg item, i; item });
+		// max.debug("seconds");
+		^max
+}
 
-
-
+}
 
 
 
