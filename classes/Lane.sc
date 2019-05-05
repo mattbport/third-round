@@ -5,9 +5,11 @@
 
 Lane {
 	var <>weight;
+	var <>  tempo; // lanes can now have a tempo = allows play command to control tempo for midi clips
 	var <>loop;
 	var <>loopTimes;   // usually inf
 	var <>stop;
+	var < outBus;
 	var < sample;                // Sample has protocol -
 	                                       //play, duration, name, repeatTimes, synth
 	                                       // NESTING pretty sure could allow SAMPLE to be
@@ -19,13 +21,26 @@ Lane {
 
 	sample_{
 		arg aSample;
-		sample = aSample.copy}
+		sample = aSample.copy
+		^this
+	}
+
+	outBus_{
+		arg aBool;
+		outBus = aBool;
+		outBus.debug("Setting outBus in Lane");
+		this.sample.outBus_(outBus);
+		^this
+	}
+
+
+
 
 
 *new { ^ super.new.init}
 
 *null { ^super.new}
-	                                       // Null Lane helps  when validly no lane can be chosen
+	                                       // Null Lane helps  whenno lane can be  validly  chosen
 	                                        // More convenient than  empty list
 	                                       // the only tricky parts of the protocol that a null lane needs to respond to
 	                                       // intelligenty are isNull, play and duration related  - but
@@ -43,6 +58,10 @@ init{
 	loopTimes = inf
 	}
 
+	choose{
+		        this.sample.isNil.if { "SampleBank not loaded".postln;   ^nil};
+		        this.sample.choose /* just in case its a chooser or sequence*/
+	}
 
 copy {
 	var me;
@@ -84,7 +103,7 @@ goDummy{ this.sample_(DummySample.new); ^ DummySample.new} //Tidy up - nulls sho
 	                                                                                                      // However also used when sample is nil
 //=============   TESTING Queries & Acessors   ====================
 
-hasNestedChooser{
+hasNestedChooser{    // could be a looped sequence - need to allow for
 		^ this.sample.isChooser}
 
 
@@ -155,16 +174,24 @@ namedSample{
 		this.sample_(SampleBank.sampleDef(aSymbol));
 	}
 
-
+namedClip{
+		arg aSymbol;
+		this.sample_(ClipBank.clipDef(aSymbol));
+	}
 
 
 
 //============ ACTIONS ================
 
 	play{
-		this.hasLoop.debug("value of has loop in play in Lane");
+		//this.hasLoop.debug("value of has loop in play in Lane");
 		this.hasLoop.if {this.sample.loopOn};
-		  this.sample.play
+         this.outBus.isNil.not.if { this.sample.outBus_(this.outBus)}; // stereo
+		//this.outBus.debug("In Lane"); // stereo
+		this.tempo.isNil.if { ^  this.sample.play };
+		this.sample.play(TempoClock.new (this.tempo) )
+
+
 		//this.isNull.if {^nil};
 		//this.sample.isNil.if({ ^nil}, {this.sample.play})
 		// needs to deal with case if lane is empty
@@ -211,6 +238,9 @@ duration{
 localDuration{
 		(this.sample.class == DummySample).if { ^0 };
 		this.sample.isNil.if { this.goDummy };  //Tidy up- nulls should just  be inited with a dummy
+		//this.sample.debug("local sample in lane");
+		// this.sample.chooser.debug("chooser in wrapper in lane");
+		// this.sample.duration.debug("local duration of sample in lane");
 		^ (this.sample.duration) *  (this.loopDurationMultiplier) }
 
 
@@ -242,7 +272,7 @@ calculateSmartDurationWithNoActiveTimeLane{
 		this.sample.isNil.if { debug("Sample not loaded") };
 		this.sample.isString.if { this.sample.debug("Sample not loaded") };
 		this.sample.isSymbol.if { this.sample.debug("Sample not loaded") };
-
+        this.sample.choose;  //needed for  nested case
 
 		this.sample.smartDuration_(this.localDuration);
         ^this.localDuration }
@@ -252,6 +282,7 @@ calculateSmartDurationWithChosenTimeLaneForParent{  //KEY METHOD
 		                                                                             //- NB  TAKES A PARAMETER
 	arg chosenTimeLane, aParent;
 		var timeLaneDuration;
+		//this.debug("who is setting to inf");
 		chosenTimeLane.isNil.if{
 
 			this.sample.isNil.if { debug("Sample not loaded"); ^nil};
@@ -262,11 +293,12 @@ calculateSmartDurationWithChosenTimeLaneForParent{  //KEY METHOD
 
 
 		timeLaneDuration = chosenTimeLane.duration;
-
+        // timeLaneDuration.debug("who is setting to inf");
 		this.isNull.if {^nil};
 		this.sample.isNil.if { debug("Sample not loaded"); ^nil};
 		this.sample.isString.if { this.sample.debug("Sample not loaded"); ^nil};
 		this.sample.isSymbol.if { this.sample.debug("Sample not loaded"); ^nil};
+		this.sample.choose;
 		//this.debug("going for kill in lane");
 			this.hasHardStop.if {^ this.sample.hardDuration(timeLaneDuration)};  // misleading name - this is a setter for sample
 
@@ -288,6 +320,10 @@ durationGivenNRepeats{
 		arg num ;
 		^ num* (this.sample.duration);
 			}
+
+xSmartDuration	{
+		^ this.sample.xSmartDuration}
+
 
 
 

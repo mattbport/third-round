@@ -5,8 +5,9 @@ Sample{                     // synthDef is creaed by warmup but sorta lives on s
 		var <> name;               // filled by new
 	    var <> wavName;         //  filled by new
 	    var <>atomicRepeats;   // not yet used
-	    var  <>  loop;
-	    var <> smartDuration;  // not need to play correctly. Need to report duration
+	    var  <> loop   ;
+	    var <> outBus = 0;                   // -1 to 1 doents appear to be workig
+	    var  <> smartDuration;  // not need to play correctly. Need to report duration
 	                                         // correctly when controlled by external environment
 
 // ============= QUERYING AND SETTING =======
@@ -62,21 +63,29 @@ createBuffer{  //  NB audio folder assumed to be in extension folder
 		fullWavPath = directoryPath +/+  wavFilePath;
 		//fullWavPath.postln;
 		this.buffer_(Buffer.read(Server.default, fullWavPath.fullPath.asString));
-		//this.buffer.postln;
+		// this.buffer.postln;
                }
 
 createSynthDef {
-			SynthDef(this.name , {arg loop=0, volume=0.3;
-			Out.ar(0, PlayBuf.ar(2, this.buffer.bufnum, BufRateScale.kr(this.buffer.bufnum),
-					                                   loop:loop, doneAction:2)*volume )}).add;
+		    //(this.name == \clap11).if{ outBus= 1};  // daft appraoch - just an experiment
+			SynthDef(this.name , {arg loop=0, volume=0.5, outputBus=0;
+			Out.ar(outputBus,
+				     PlayBuf.ar(2, this.buffer.bufnum, BufRateScale.kr(this.buffer.bufnum),
+					loop:loop, doneAction:2)*volume )
+			}).add;
 
 		        }
 
 // ========== PLAYING ===================
 play {   synth = Synth(this.name);
+		   synth.set(\outputBus, this.outBus);
+		this.outBus.debug("In sample");
 		     synth.set(\loop, this.loopStatus);}
 	                                                               //starts playing as soon as created
 
+
+	//neither of these stops below look adequate for diff sample types
+	// oh - maybe wrappers do it.... YES!!
 
 hardPlay{ arg tcDuration;
 	     	 var  t =   TempoClock(SampleBank.tempo); // queried by lane & chooser
@@ -98,9 +107,13 @@ softPlay{ arg tcDuration;
 
 pause {
 			this .synth.run(false) }
+free {
+			this .synth.free}
 
 resume {
 			this.synth.run(true) }
+
+choose {   ^ this  /* just needed for recursion*/}
 
 
 // ============ INTRINSIC DURATION
@@ -110,9 +123,16 @@ basicDuration{
 	                             // when not changedby external factors
 
 duration{
+		var aDuration;
 		// duration of sample when not multiplied by looping or curtailed by hard or soft stop
 		//duration in beats.  (Buffer returns duration iin seconds, so we need to convert)
-		^SampleBank.secsToBeats(this.buffer.duration)
+		//this.buffer.debug("buffer");
+		//this.buffer.duration.debug("buffer,duration");
+		// LIKELY SERVER NOT STARTING _ REBOOT MAC
+		{aDuration = this.buffer.duration}.try
+		{^ this.debug("Likely 'Server failing to start' error'- reboot machine- not just supercollider")};
+
+		^SampleBank.secsToBeats(aDuration)
 	}
 
 
