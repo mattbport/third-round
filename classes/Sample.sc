@@ -73,8 +73,7 @@ createSynthDef {
 				     PlayBuf.ar(2, this.buffer.bufnum, BufRateScale.kr(this.buffer.bufnum),
 					loop:loop, doneAction:2)*volume )
 			}).add;
-
-		        }
+	}
 
 // ========== PLAYING ===================
 play {   synth = Synth(this.name);
