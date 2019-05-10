@@ -1,0 +1,5 @@
++ Boolean{
+
+	isBoolean{
+		^true}
+}

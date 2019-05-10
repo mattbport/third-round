@@ -1,0 +1,6 @@
++ Buffer{
+    isBuffer {
+		^true
+    }
+
+}

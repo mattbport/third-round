@@ -1,0 +1,6 @@
++ Symbol{
+    isSymbol {
+		^true
+    }
+
+}
