@@ -8,7 +8,7 @@ SampleBank{
 
 
 	*tempo{
-		tempo.isNil.if {^ tempo = 120/60};  // NB Class (not instance)  holds global tempo
+		tempo.isNil.if {^ tempo = 122/60};  // NB Class (not instance)  holds global tempo
 		^ tempo                                           // and acts as sample bank
 	}
 
@@ -18,9 +18,11 @@ SampleBank{
 		samples.add(\guitar -> Sample.new(\guitar, "gtr8"));
 		samples.add(\bass -> Sample.new(\bass, "bass4"));   // itry to get rid of redundant
 		                                                                                   //repeated symbol parameter
+		samples.add(\bass2 -> Sample.new(\bass2, "bass8"));   // itry to get rid of redundant
 		samples.add(\vox -> Sample.new(\vox, "vox8"));
 		samples.add(\drums -> Sample.new(\drums ,"drums8"));
 		samples.add(\marimba -> Sample.new(\marimba ,"marimba4"));
+		samples.add(\synthbass -> Sample.new(\synthbass,"synthbass4"));
 		samples.add(\bvs -> Sample.new(\bvs ,"bv8"));
 
        this.populateInC ;
