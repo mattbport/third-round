@@ -127,7 +127,7 @@ b = Buffer.read(s, "/Users/matt/Documents/GitHub/third-round/classes/audio/vox8.
 
 {
 	arg now;
-	var grid = 8 * 4;
+	var grid = 8 * 2;
 	var pulse = Impulse.kr((a.sampleRate/a.numFrames)*grid);
 	var anchor = TRand.kr(0, grid-1, pulse).round(1).poll;
 
@@ -136,7 +136,7 @@ b = Buffer.read(s, "/Users/matt/Documents/GitHub/third-round/classes/audio/vox8.
 	var drums = PlayBuf.ar(2, b.bufnum, BufRateScale.kr(b.bufnum), now, 0, 1, doneAction:0);
 
 
-	vox + drums
+	vox+drums
 
 }.play
 )
