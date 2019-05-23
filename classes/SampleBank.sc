@@ -8,7 +8,7 @@ SampleBank{
 
 
 	*tempo{
-		tempo.isNil.if {^ tempo = 122/60};  // NB Class (not instance)  holds global tempo
+		tempo.isNil.if {^ tempo = 100/60};  // NB Class (not instance)  holds global tempo
 		^ tempo                                           // and acts as sample bank
 	}
 
