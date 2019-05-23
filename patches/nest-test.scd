@@ -97,6 +97,121 @@ SampleBank.warmUp;
 ~nest2.play;
 )
 
+
+
+// strings and pads test
+
+(
+~strings = Xhooser.new;
+~strings.name_("strings");
+~strings.noseCone_(1);
+~strings.addLane(Lane.new.namedSample(\strings1).loopOn.weight_(1));
+~strings.addLane(Lane.new.namedSample(\strings2).loopOn.weight_(0));
+~strings.addLane(Lane.new.namedSample(\strings3).loopOn.weight_(0));
+~stringstime = TimeChooser.new;
+~stringstime.noseCone_(1);
+~stringstime.addLane(TimeLane.new.beats_(4*8));
+~strings.timeChooser_(~stringstime);
+
+~strongs = Xhooser.new;
+~strongs.name_("strongs");
+~strongs.noseCone_(1);
+~strongs.addLane(Lane.new.namedSample(\strings1).loopOn.weight_(0));
+~strongs.addLane(Lane.new.namedSample(\strings2).loopOn.weight_(1));
+~strongs.addLane(Lane.new.namedSample(\strings3).loopOn.weight_(0));
+~strongstime = TimeChooser.new;
+~strongstime.noseCone_(1);
+~strongstime.addLane(TimeLane.new.beats_(3*8));
+~strongs.timeChooser_(~strongstime);
+
+
+~pad = Xhooser.new;
+~pad.name_("pad");
+~pad.noseCone_(1);
+~pad.addLane(Lane.new.namedSample(\pad1).loopOn.weight_(1));
+~pad.addLane(Lane.new.namedSample(\pad2).loopOn.weight_(1));
+~padtime = TimeChooser.new;
+~padtime.noseCone_(1);
+~padtime.addLane(TimeLane.new.beats_(3*8));
+~pad.timeChooser_(~padtime);
+
+
+~nest = Xhooser.new;
+~nest.noseCone_(2);
+~nest.addLane(Lane.new.nest(~strings).loopOn.hardStopOn.weight_(1));
+~nest.addLane(Lane.new.nest(~strongs).loopOn.hardStopOn.weight_(1));
+~nest.addLane(Lane.new.nest(~pad).loopOn.hardStopOn.weight_(1));
+~nesttc = TimeChooser.new;
+~nesttc.noseCone_(1);
+~nesttc.addLane(TimeLane.new.beats_(4*32));
+~nest.timeChooser_(~nesttc);
+)
+
+~nest.play;
+
+
+(
+~strings = Xhooser.new;
+~strings.name_("strings");
+~strings.noseCone_(1);
+~strings.addLane(Lane.new.namedSample(\strings1).loopOff.hardStopOn.weight_(1));
+~strings.addLane(Lane.new.namedSample(\strings2).loopOff.hardStopOn.weight_(0));
+~strings.addLane(Lane.new.namedSample(\strings3).loopOff.hardStopOn.weight_(0));
+~stringstime = TimeChooser.new;
+~stringstime.noseCone_(1);
+~stringstime.addLane(TimeLane.new.beats_(4));
+~strings.timeChooser_(~stringstime);
+
+~strongs = Xhooser.new;
+~strongs.name_("strongs");
+~strongs.noseCone_(1);
+~strongs.addLane(Lane.new.namedSample(\strings1).loopOff.hardStopOn.weight_(0));
+~strongs.addLane(Lane.new.namedSample(\strings2).loopOff.hardStopOn.weight_(0));
+~strongs.addLane(Lane.new.namedSample(\strings3).loopOff.hardStopOn.weight_(1));
+~strongstime = TimeChooser.new;
+~strongstime.noseCone_(1);
+~strongstime.addLane(TimeLane.new.beats_(4));
+~strongs.timeChooser_(~strongstime);
+
+
+~pad = Xhooser.new;
+~pad.name_("pad");
+~pad.noseCone_(1);
+~pad.addLane(Lane.new.namedSample(\pad1).loopOn.softStopOn.weight_(1));
+~pad.addLane(Lane.new.namedSample(\pad2).loopOn.softStopOn.weight_(1));
+~padtime = TimeChooser.new;
+~padtime.noseCone_(1);
+~padtime.addLane(TimeLane.new.beats_(4));
+~pad.timeChooser_(~padtime);
+
+
+~nest = Xhooser.new;
+~nest.noseCone_(3);
+~nest.addLane(Lane.new.nest(~strings).loopOn.hardStopOn.weight_(1));
+~nest.addLane(Lane.new.nest(~strongs).loopOn.hardStopOn.weight_(1));
+~nest.addLane(Lane.new.nest(~pad).loopOn.hardStopOn.weight_(1));
+~nesttc = TimeChooser.new;
+~nesttc.noseCone_(1);
+~nesttc.addLane(TimeLane.new.beats_(4*128));
+~nest.timeChooser_(~nesttc);
+
+~nest.play;
+
+)
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////
+
 (
 a = Buffer.read(s, "/Users/matt/Documents/GitHub/third-round/classes/audio/drums8.wav");
 b = Buffer.read(s, "/Users/matt/Documents/GitHub/third-round/classes/audio/drums8.wav");

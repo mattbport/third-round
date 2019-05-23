@@ -24,6 +24,11 @@ SampleBank{
 		samples.add(\marimba -> Sample.new(\marimba ,"marimba4"));
 		samples.add(\synthbass -> Sample.new(\synthbass,"synthbass4"));
 		samples.add(\bvs -> Sample.new(\bvs ,"bv8"));
+		samples.add(\strings1 -> Sample.new(\strings1 ,"strings1"));
+		samples.add(\strings2 -> Sample.new(\strings2 ,"strings2"));
+		samples.add(\strings3 -> Sample.new(\strings3 ,"strings3"));
+		samples.add(\pad1 -> Sample.new(\pad1 ,"pad1"));
+		samples.add(\pad2 -> Sample.new(\pad2 ,"pad2"));
 
        this.populateInC ;
 	   this.populateClap11;
