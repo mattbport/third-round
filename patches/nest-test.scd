@@ -26,9 +26,10 @@ SampleBank.warmUp;
 ~nesttc.noseCone_(1);
 ~nesttc.addLane(TimeLane.new.beats_(4*16));
 ~nest.timeChooser_(~nesttc);
-)
 
 ~nest.play;
+)
+
 
 ~bass.play;
 
@@ -119,7 +120,7 @@ SampleBank.warmUp;
 ~strongs.name_("strongs");
 ~strongs.noseCone_(2);
 ~strongs.addLane(Lane.new.namedSample(\strings1).loopOff.hardStopOn.weight_(0));
-~strongs.addLane(Lane.new.namedSample(\strings2).loopOff.hardStopOn.weight_(1));
+~strongs.addLane(Lane.new.namedSample(\strings2).loopOff.hardStopOn.weight_(0));
 ~strongs.addLane(Lane.new.namedSample(\strings3).loopOff.hardStopOn.weight_(1));
 ~strongstime = TimeChooser.new;
 ~strongstime.noseCone_(1);
