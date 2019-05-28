@@ -54,11 +54,13 @@ SampleBank.samples.at(\bvs).play; //
 ~nesttc.addLane(TimeLane.new.beats_(4*16));
 ~nest.timeChooser_(~nesttc);
 
+
+~nest.play;
+
 )
 
 // Bass killed 2 beats before the end - 16:3:0
 
-~nest.play;
 
 ~bass.play;
 
@@ -156,7 +158,7 @@ SampleBank.sampleDef(\drums).play
 ~nest.addLane(Lane.new.namedSample(\drums).loopOn.hardStopOn.weight_(1));
 ~nesttc = TimeChooser.new;
 ~nesttc.noseCone_(1);
-~nesttc.addLane(TimeLane.new.beats_(4*16));
+~nesttc.addLane(TimeLane.new.beats_(4*8));
 ~nest.timeChooser_(~nesttc);
 
 ~nest.play;

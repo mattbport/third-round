@@ -121,7 +121,7 @@ hardPlay{ arg tcDuration;
 		   // this.clocks.add(myClock); // - OOPS dont want this being killed
 		     this.hardDuration(tcDuration);  // tough bug to find on new plays
 		     this.play;
-		myClock.sched( ( tcDuration -2 ),
+		myClock.sched( ( tcDuration ), // NO!!! DONT
 			    //this.chooser.kill - 3 ms early to give it time to kill
 			{this.chooser.kill;
 			           //this.loopableSequence.deepKill}) // for the case where its a loopable Seq
