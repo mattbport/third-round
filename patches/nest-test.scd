@@ -56,6 +56,8 @@ SampleBank.samples.at(\bvs).play; //
 
 )
 
+// Bass killed 2 beats before the end - 16:3:0
+
 ~nest.play;
 
 ~bass.play;
@@ -158,9 +160,23 @@ SampleBank.sampleDef(\drums).play
 ~nest.timeChooser_(~nesttc);
 
 ~nest.play;
-~bass.play;
 )
 
+// As before - bass killed 2 beats before the end of the 16 bars
+// stop: Synth('bass' : 1178)
+// stopped any CURRENTLY running synths in nil
+// FAILURE IN SERVER /n_run Node 1178 not found
+// FAILURE IN SERVER /n_run Node 1179 not found
+// FAILURE IN SERVER /n_run Node 1179 not found
+// FAILURE IN SERVER /n_run Node 1179 not found
+// FAILURE IN SERVER /n_run Node 1178 not found
+// FAILURE IN SERVER /n_run Node 1179 not found
+// FAILURE IN SERVER /n_run Node 1178 not found
+// FAILURE IN SERVER /n_run Node 1178 not found
+
+// Then, drums killed at the right time
+// !!=======!!  hard stop using free: drums
+// ... for node ID: 1007
 
 // Back to the first example, but this time nest it in another Chooser
 // Does not work
@@ -194,16 +210,16 @@ SampleBank.sampleDef(\drums).play
 ~nest2tc.addLane(TimeLane.new.beats_(4*32));
 ~nest2.timeChooser_(~nest2tc);
 
-~bass.play;
-~nest.play;
 
 ~nest2.play;
 )
-
+// All good, but bass is killed prematurely at 16:3:0
+// Both drums and bass killed prematurely at 32:3:0
 
 
 
 // strings and pads test - samples at 100bpm
+SampleBank.tempo_(100/60);
 
 
 (
@@ -211,8 +227,8 @@ SampleBank.sampleDef(\drums).play
 ~strings.name_("strings");
 ~strings.noseCone_(1);
 ~strings.addLane(Lane.new.namedSample(\strings1).loopOff.hardStopOn.weight_(1));
-~strings.addLane(Lane.new.namedSample(\strings2).loopOff.hardStopOn.weight_(0));
-~strings.addLane(Lane.new.namedSample(\strings3).loopOff.hardStopOn.weight_(0));
+~strings.addLane(Lane.new.namedSample(\strings2).loopOff.hardStopOn.weight_(1));
+~strings.addLane(Lane.new.namedSample(\strings3).loopOff.hardStopOn.weight_(1));
 ~stringstime = TimeChooser.new;
 ~stringstime.noseCone_(1);
 ~stringstime.addLane(TimeLane.new.beats_(4));
@@ -220,8 +236,8 @@ SampleBank.sampleDef(\drums).play
 
 ~strongs = Xhooser.new;
 ~strongs.name_("strongs");
-~strongs.noseCone_(2);
-~strongs.addLane(Lane.new.namedSample(\strings1).loopOff.hardStopOn.weight_(0));
+~strongs.noseCone_(1);
+~strongs.addLane(Lane.new.namedSample(\strings1).loopOff.hardStopOn.weight_(1));
 ~strongs.addLane(Lane.new.namedSample(\strings2).loopOff.hardStopOn.weight_(1));
 ~strongs.addLane(Lane.new.namedSample(\strings3).loopOff.hardStopOn.weight_(1));
 ~strongstime = TimeChooser.new;
