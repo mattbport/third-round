@@ -18,7 +18,11 @@ SampleBank{
 		samples.add(\guitar -> Sample.new(\guitar, "gtr8"));
 		samples.add(\bass -> Sample.new(\bass, "bass4"));   // itry to get rid of redundant
 		                                                                                   //repeated symbol parameter
+
+		//this.halt;
+		"Loading bass2 sample".postln;
 		samples.add(\bass2 -> Sample.new(\bass2, "bass8"));   // itry to get rid of redundant
+		"Loaded bass2 sample".postln;
 		samples.add(\vox -> Sample.new(\vox, "vox8"));
 		samples.add(\drums -> Sample.new(\drums ,"drums8"));
 		samples.add(\marimba -> Sample.new(\marimba ,"marimba4"));

@@ -30,7 +30,13 @@ isChooser {^false}
 
 isSymbol { ^ false}
 
+isWrapper { ^ false}
+
+deepKill { this.free } // this is implemented by Xhooser Wrapperss
+
 // CREATING & INITIALIZING =========
+
+setHardDurationLimit{ } // used by XhooserWrapper
 
 *new { arg  aName, aWavName;
 			var me = super.new;
@@ -40,7 +46,25 @@ isSymbol { ^ false}
 
 init {
 		this.createBuffer;
-	    "Wait before warming up".postln}
+		this.name.postln;
+	  //  "Creating buffer for single sample- Wait before warming up".postln
+
+	}
+
+
+bugFix { arg num;  // synth def vs synth .... confused...
+		this.name_(this.name +num.asString);
+		this.createBuffer;
+		this.warmUp;
+		this.name.debug("warming up version" + num ) }
+	// NO Need!!!!! just make a copy of me !!
+	// its just the business of having a synth instance variabee
+	// that does not get changed between a play and a hard stop
+
+
+
+
+
 
 warmUp {
 			this.createSynthDef;
@@ -73,12 +97,15 @@ createSynthDef {
 				     PlayBuf.ar(2, this.buffer.bufnum, BufRateScale.kr(this.buffer.bufnum),
 					loop:loop, doneAction:2)*volume )
 			}).add;
-	}
+
+		        }
 
 // ========== PLAYING ===================
-play {   synth = Synth(this.name);
+play {   synth = Synth(this.name);   // creates & stores a synth instnce
 		   synth.set(\outputBus, this.outBus);
-		this.outBus.debug("In sample");
+		// this.outBus.debug("In sample");
+		this.name.debug("creating new synth in sample instance");
+		 synth.asNodeID.debug("with Node ID");
 		     synth.set(\loop, this.loopStatus);}
 	                                                               //starts playing as soon as created
 
@@ -89,8 +116,11 @@ play {   synth = Synth(this.name);
 hardPlay{ arg tcDuration;
 	     	 var  t =   TempoClock(SampleBank.tempo); // queried by lane & chooser
 		     this.hardDuration(tcDuration);  // tough bug to find on new plays
-		     this.play;
-		     t.sched( tcDuration,   {this.synth.free})
+		     this.play; // creates a synth instance
+		t.sched( (tcDuration- 0.03),   {this.synth.free; // frees the stored instacne
+		           this.name.debug(" !!=======!!  hard stop using free");
+			       this.synth.asNodeID.debug("... for node ID") ;
+			       nil} )
 	}
 
 

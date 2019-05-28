@@ -11,6 +11,7 @@ Xhooser {
 	var <> myclocks;  // maye be needed for nesting -NO !! in wrapper!!
 	   // but could record an event stream - instance of non det command pattern?
 	   // approx 1000 LOC total
+	var <> group;
 
 // =====  INITIALIZATION	 =======
 init{
@@ -19,9 +20,27 @@ init{
 		journal = List.new;
 		hasParent = false;
 		name ="Unnamed Chooser";
+
 	}
 
 *new { ^ super.new.init}
+
+kopy{ var me, nuLanes;
+		// got to be kopy or will be infinite loop
+		// make a copy of me
+		//copy my lanes separaelt using bog standard copy
+		// so its kinds semi deep copy
+		// copies will share the samples
+		// butsamp[les havent been played yet.
+		// so have no synths stsoted in synth instacne variable
+		//each play will create a new node ID and a  create & stire new synth
+		//the two samples will save synths spereately
+		// and so handle swithcing on and off propely (play & free)
+		 me = this.copy;
+		nuLanes = (this.lanes.collect{ arg eachLane ; eachLane.copy}).asList;
+		me.lanes_(nuLanes);
+		^ me }
+
 
 /*
 	// Royally screws up clapping and loopable seqnecne
@@ -40,6 +59,35 @@ copy {
 	}
 */
 
+	/*
+lanesWithCleanSamples	{
+		^ (this.lanes.collect { arg eachLane, i;  eachLane.copy}).asList
+	        }
+
+cleanSamples {
+		    this.lanes.clear;
+		    this.lanesWithCleanSamples.do{ arg each; this.lanes.add(each)}
+	        }
+
+*/
+
+
+
+
+cleanAllSamples { arg n;
+		this.lanes.do { arg eachLane, i;  eachLane.clean;  eachLane.bugFix(n)}
+	}
+
+
+bakeNest {
+		//look for any nested choosers
+		// if poss work out how many choosers to have in loopable sequence
+		// create the sequence and make sure each &&  instacne of sample &&
+		// is only asked to hols one synth
+		// NB its eay and ok to v=cerat insatcnes of synths from a sungle sample
+		// but we need to  keep track of the node IDS and turning them off & On
+		// so maybe we can do that onl the fly in nsequecne in theloopabel seqiecne
+	}
 
 // ====== LANE ADDING & REMOVAL  =========
 addLane{
@@ -108,6 +156,9 @@ integrityCheck{
 	}
 
 
+chosenLanesThatContainChoosers {
+		^this.chosenLanes.select{ arg eachLane, i;  eachLane.sample.isWrapper}
+	}
 
 
 // ======  DERIVED COLLECTIONS AND NUMBERS ============
@@ -277,7 +328,8 @@ play {                 //  PRINCIPLE: multiple hits of plain play always produce
 		                  // journals previous choices,
 			this.chooseLanes;                         // empties out previous choices
 		    this.journal.add( \chosenLanes -> this.chosenLanes.asArray);
-		    this.outBus.debug("In Chooser"); // stereo
+		  //   this.outBus.debug("In Chooser"); // stereo
+		    this.name.debug("In Chooser"); // stereo
 		    this.outBus.isNil.not.if {
 			this.chosenLanes.debug("Hit chosen Lanes");
 			this.chosenLanes.do
@@ -295,6 +347,11 @@ resume{
 
 stop { this.free}
 kill {this.stop  } //to give uniform nesting protovol in wrapper for nester Loopable S's }
+
+	deepKill {this.chosenLanes.do	{ arg each; each.deepKill};
+		("Chooser " + this.name + " just passed on deepkill to chosen lanes ").postln
+	}
+
 
 free { this.allChosenSynths.free;
 		this.allChosenSamples.do { arg each; each.free } } // Fixed clap2 !!!!

@@ -1,12 +1,37 @@
+Server.killAll;
+s.boot;
+s.freeAll;
 SampleBank.populate;
 SampleBank.warmUp;
+SampleBank.tempo_(122/60);
+
+//TWO samples not loading..... DEBUGGING>>>
+SampleBank.samples.at(\bass) ;   .inspect
+SampleBank.samples.at(\bass2)
+SampleBank.samples.add(\bass2 -> Sample.new(\bass2, "bass8"))
+SampleBank.samples.at(\bass2)
+SampleBank.samples.add(\synthbass -> Sample.new(\synthbass,"synthbass4"));
+SampleBank.samples.at(\synthbass)
+SampleBank.tempo;  // was 100/60 = 1.666666
+SampleBank.tempo_(122/60);  Better!!!!
+SampleBank.tempo;
+
+
+SampleBank.samples.at(\bass).play; // canonical 4 bars
+SampleBank.samples.at(\bass2).play; // jangly 8 bars
+SampleBank.samples.at(\synthbass).play; // 4 bars
+SampleBank.samples.at(\vox).play; //
+SampleBank.samples.at(\bvs).play; //
+
+122/60
 
 // First test; works fine as intended, but...
 // Changing the bass duration to be shorter
-// leads to FAILURE IN SERVER error
+// leads to FAILURE IN SERVER error - well - that is not really an error - its just how you get nested playables to stop...
 // e.g. try setting the bass Chooser to a duration of 1 bar
 // samples at 122bpm
 (
+
 ~bass = Xhooser.new;
 ~bass.name_("bass");
 ~bass.noseCone_(1);
@@ -18,7 +43,9 @@ SampleBank.warmUp;
 ~basstc.addLane(TimeLane.new.beats_(4*4));
 ~bass.timeChooser_(~basstc);
 
+
 ~nest = Xhooser.new;
+~nest.name_("Singly nested");
 ~nest.noseCone_(2);
 ~nest.addLane(Lane.new.nest(~bass).loopOn.hardStopOn.weight_(1));
 ~nest.addLane(Lane.new.namedSample(\drums).loopOn.hardStopOn.weight_(1));
@@ -27,11 +54,80 @@ SampleBank.warmUp;
 ~nesttc.addLane(TimeLane.new.beats_(4*16));
 ~nest.timeChooser_(~nesttc);
 
-~nest.play;
 )
 
+~nest.play;
 
 ~bass.play;
+
+// DEBUGGING
+// maybe they just got tobe sequecned....
+//see schedule
+//think alsequencesynths
+// maybe needs to ve fro bottom up....
+
+/// its all happening in sample play...
+
+
+//can gace same samople being played simul many times as diff nodes - ALL OK
+SampleBank.sampleDef(\drums).play
+
+
+~bass.inspect
+~bass.lanesWithCleanSamples.inspect
+~bass.lanesWithCleanSamples.size
+~bass.lanes.inspect
+~bass.cleanAllSamples(3).play;
+~bass.lanesWithCleanSamples
+~bass.lanes.inspect
+~bass.clean.lanes.inspect
+~la = Lane.new.namedSample(\bass).loopOn.hardStopOn.weight_(1);
+~la.inspect
+~la.copy
+
+~la.sample == ~la.copy.sample
+~la.sample == ~la.sample
+~la.sample.equals( ~la.copy.sample)
+
+~la.copy.inspect
+
+~bass.journal;
+~bass.journal.inspect;
+~nest.chosenLanes
+~nest.chosenLanesThatContainChoosers
+~nest.chosenLanesThatContainChoosers.first
+// Interesting
+("Chooser" + 3.asString).inspect
+~nest.chosenLanesThatContainChoosers.first.sample.inspect
+~nest.chosenLanesThatContainChoosers.first.sample.clocks
+~nest.chosenLanesThatContainChoosers.first.sample.loopableSequence.clocks
+~nest.chosenLanesThatContainChoosers.first.sample.loopableSequence
+~nest.chosenLanes.at(0)
+~nest.chosenLanes.at(1)
+~nest.chosenLanes.at(0).sample.loopableSequence.clocks
+~nest.chosenLanes.at(0).sample.loopableSequence.clocks.size
+~nest.chosenLanes.at(0).sample.loopableSequence.choosers
+~nest.chosenLanes.at(0).sample.loopableSequence.choosers
+
+~nest.chosenLanes.at(1).sample.loopableSequence.choosers.size
+~nest.chosenLanes.at(1).sample.loopableSequence.choosers.inspect
+~nest.chosenLanes.at(1).sample.loopableSequence.choosers.do {arg each; each.kill}
+~nest.chosenLanes.at(1).sample.loopableSequence.allSequencedSynths.do{arg each; each.free}
+~nest.chosenLanes.at(1).sample.loopableSequence.stopRun
+~nest.chosenLanes.at(1).sample.loopableSequence.stop
+~nest.chosenLanes.at(0).sample.loopableSequence
+~nest.chosenLanes.at(0).sample.loopableSequence.stopRun
+~nest.chosenLanes.at(0).sample.loopableSequence.stop
+~nest.chosenLanes.at(0).sample.loopableSequence.free
+~nest.chosenLanes.at(0).sample.loopableSequence.stop
+~nest.chosenLanes.at(0).sample.loopableSequence.clear
+~nest.chosenLanes.at(0).sample.loopableSequence.kill
+~nest.chosenLanes.at(0).sample.loopableSequence.basicKill
+~nest.chosenLanes.at(0).sample.loopableSequence.deepkill
+~nest.chosenLanes.at(0).sample.loopableSequence.allSequencedSynths;
+~nest.choosers;
+
+
 
 
 // Soft stops on the bass lanes, with a 1-bar time chooser
@@ -48,7 +144,8 @@ SampleBank.warmUp;
 ~bass.addLane(Lane.new.namedSample(\synthbass).loopOn.softStopOn.weight_(1));
 ~basstc = TimeChooser.new;
 ~basstc.noseCone_(1);
-~basstc.addLane(TimeLane.new.beats_(4));
+~basstc.addLane(TimeLane.new.beats_(4)); // just one bar - but each sample is soft stop
+                                                                  // so the samples of diff length each just get played once
 ~bass.timeChooser_(~basstc);
 
 ~nest = Xhooser.new;
@@ -61,6 +158,7 @@ SampleBank.warmUp;
 ~nest.timeChooser_(~nesttc);
 
 ~nest.play;
+~bass.play;
 )
 
 
@@ -70,17 +168,17 @@ SampleBank.warmUp;
 ~bass = Xhooser.new;
 ~bass.name_("bass");
 ~bass.noseCone_(1);
-~bass.addLane(Lane.new.namedSample(\bass).loopOn.hardStopOn.weight_(1));
+~bass.addLane(Lane.new.namedSample(\bass).loopOn.hardStopOn.weight_(1));  // hard stops now
 ~bass.addLane(Lane.new.namedSample(\bass2).loopOn.hardStopOn.weight_(1));
 ~bass.addLane(Lane.new.namedSample(\synthbass).loopOn.hardStopOn.weight_(1));
 ~basstc = TimeChooser.new;
 ~basstc.noseCone_(1);
-~basstc.addLane(TimeLane.new.beats_(4*4));
+~basstc.addLane(TimeLane.new.beats_(4*4));   //back to 4 bars with a hard stop
 ~bass.timeChooser_(~basstc);
 
 ~nest = Xhooser.new;
 ~nest.noseCone_(2);
-~nest.addLane(Lane.new.nest(~bass).loopOn.hardStopOn.weight_(1));
+~nest.addLane(Lane.new.nest(~bass).loopOn.hardStopOn.weight_(1));  /// BUG - bass not stopped by hard stop
 ~nest.addLane(Lane.new.namedSample(\drums).loopOn.hardStopOn.weight_(1));
 ~nesttc = TimeChooser.new;
 ~nesttc.noseCone_(1);
@@ -96,8 +194,12 @@ SampleBank.warmUp;
 ~nest2tc.addLane(TimeLane.new.beats_(4*32));
 ~nest2.timeChooser_(~nest2tc);
 
+~bass.play;
+~nest.play;
+
 ~nest2.play;
 )
+
 
 
 
@@ -120,7 +222,7 @@ SampleBank.warmUp;
 ~strongs.name_("strongs");
 ~strongs.noseCone_(2);
 ~strongs.addLane(Lane.new.namedSample(\strings1).loopOff.hardStopOn.weight_(0));
-~strongs.addLane(Lane.new.namedSample(\strings2).loopOff.hardStopOn.weight_(0));
+~strongs.addLane(Lane.new.namedSample(\strings2).loopOff.hardStopOn.weight_(1));
 ~strongs.addLane(Lane.new.namedSample(\strings3).loopOff.hardStopOn.weight_(1));
 ~strongstime = TimeChooser.new;
 ~strongstime.noseCone_(1);

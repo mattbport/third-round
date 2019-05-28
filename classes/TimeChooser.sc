@@ -43,6 +43,10 @@ copy {
 		^aStream}
 
 
+noseConeIsNil{
+		^ this.noseCone == nil
+	}
+
 noseConeIsZero{   // still wonder if timechooser noseCones
 		                    // should be simply  on or off,  active or inactive
 		^this.noseCone == 0}
@@ -109,6 +113,9 @@ chooseWinnerFromFiniteNonZeroWeightedLanes{
 nonDeterministicLaneChoice {
 	// 5 CASES
 	//  zero noseCone
+
+		this.noseConeIsNil.if {" Nose cone has no value set - setting to 1".postln ;   this.noseCone_(1);};
+			                                 //this.halt
 
 	this.noseConeIsZero.if {
 			"nosecone in time chooser is zero- ignoring time chooser".postln;

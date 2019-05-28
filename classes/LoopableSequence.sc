@@ -8,12 +8,21 @@ LoopableSequence{   // or sequencer better name? NO
 	var < loopTimes;   // usually inf - but here prudent to always limit repeats to something finite
 	                              // else may crash the scheduler - since the server is not taking the load
 	                               // but we can still splat fullstop
-	var <> loopMax;
+	var <> loopMax;    // used as a cap to loopTimes
 	var<> duration;       // could be basic duration  - but once chosen....
 	var<> name;
 	var <> hasParent ; // not used
 	var <> outBus;
 	var <> smartDuration ; // needed for nesting
+	var <> group;
+
+
+	/// we really need to  be clear about & distinguish
+	// how long a single run of the  sequecne  of choosers with their specified chocies takes
+	// for a single loop
+	// then we need to know how many loops - does it choose again for each loop?
+	// then we need to know  how long an external hard stop is.
+
 
 *new{
 		var me;
@@ -23,8 +32,9 @@ init{ choosers = List.new;
 		timeline = List.new;
 		clocks = List.new;
 		loop = true;
+		group = Group.new;
 		loopTimes = 1;
-		loopMax = 36;
+		loopMax = 16;  //whoa - not getting changed - who sets this? - ah its loop times we want....
 	}
 
 
@@ -76,6 +86,22 @@ loopIsOff {
 
 unsolvedBug{}
 
+
+
+logEntry{	arg beats, aChooser;
+		aChooser.isNil.if({"Chooser is nil - should not happen".postln; ^nil});
+		                this.timeline.add(beats -> aChooser.chosenLanesAsArray);
+	}
+
+explore	{
+		this.timeline.asArray.inspect}
+
+
+printOn { | aStream |
+		aStream << "a " << this.class.name << "  " <<  this.timeline;
+		^aStream}
+
+
 chosenLanesAsArray {
 		this.unsolvedBug{}
 		/* "needed for when a loopable sequence is playing role of xhooser
@@ -105,26 +131,15 @@ schedule{arg aPauseInBeats,  aChooser;
 		var tClock;
 		tClock = TempoClock(SampleBank.tempo);
 		clocks.add(tClock);
-		tClock.sched ( aPauseInBeats, {  aChooser.playChosen;   nil  });
+		tClock.sched ( aPauseInBeats, {  aChooser.playChosen;
+			aChooser.name.debug("woken up by a loopeableSequence clock");
+			              nil  });
 		   // was playchosenLanes
 aChooser.debug(aChooser.name);
 	     this.logEntry(aPauseInBeats, aChooser); // play prechosen, else choice not made till scheduled
 	}
 
 
-
-logEntry{	arg beats, aChooser;
-		aChooser.isNil.if({"Chooser is nil - should not happen".postln; ^nil});
-		                this.timeline.add(beats -> aChooser.chosenLanesAsArray);
-	}
-
-explore	{
-		this.timeline.asArray.inspect}
-
-
-printOn { | aStream |
-		aStream << "a " << this.class.name << "  " <<  this.timeline;
-		^aStream}
 
 	//================== STOPPING==========
 
@@ -135,16 +150,45 @@ printOn { | aStream |
 
 		}
 
+
+
+
+	kill { this.debug("kill"); this.stop; this.stopRun;}
+
+	stopRun {this.allSequencedSynths.do { arg eachSynth, i;
+		               (eachSynth == nil).not.if
+		{eachSynth.debug("stop"); eachSynth.run(false)}};
+		("stopped any CURRENTLY running synths in" + this.name).postln;
+	}
+
 	free { this.basicFree}
 
-	stop { this.clocks.do{ arg eachClock, i; eachClock.stop}
+	stop { this.clocks.do{ arg eachClock, i; eachClock.stop};
+		("stopped any future scheduled choosers  in" + this.name).postln;
 		}
 
 
 	clear { this.clocks.do{ arg eachClock, i; eachClock.clear}
 		}
 
-	kill{ this.free; this.stop; this.clear  }
+
+
+	/*
+	kill{ this.free; this.stop; this.clear ; "loopable sequence just got killed".postln;
+		   this.basicFree
+		// but what if this goes all the way down t oanother level of nesting?
+	}
+	*/
+
+	deepKill {
+
+		this.choosers.do	{ arg each; each.deepKill};
+		"loopable sequence just got DEEP killed".postln;
+		"loopable sequence just got DEEP killed".postln;
+		 this.kill
+
+
+	}
 
 
 //================== ENABLING RECURSION ==========
@@ -173,8 +217,11 @@ nSequences { arg n;
 		 current = this.choosers.copy;
 		 (n >1).if {
 			( n-1).do { current.addAll(this.choosers)}};
-		 deep = current.collect {arg each; each.copy} ;
-		 deep .do { arg each; each.choose; /*each.debug("chosenlanes") */ };
+		 deep = current.collect {arg each; each.kopy} ;
+		 deep .do { arg each, i;
+			each.name_("Chooser"+i.asString);
+			// each.cleanAllSamples(i); synth vs synthdef - cofuxed
+			each.choose; /*each.debug("chosenlanes") */ };
 		choosers = deep;
 		//choosers.choose;
 		^choosers
@@ -191,14 +238,16 @@ choose {   var sequenceDuration =0 ;
 			     eachChooser.isNil.if ( {}, {
 			eachChooser.choose; // was choose Lanes
 			                    //eachChooser.duration.isNil.if { eachChooser.inspect };
-				                eachChooser.debug("The chooser");
-			                    eachChooser.name.debug("Choose before first sequenced play");
-			                     eachChooser.duration.debug("NEW CHOICE");
-		   	                    eachChooser.duration.debug("Chooser duration as chosen");
+				                //eachChooser.debug("The chooser");
+			                    //eachChooser.name.debug("Choose before first sequenced play");
+			                    // eachChooser.duration.debug("NEW CHOICE");
+		   	                   // eachChooser.duration.debug("Chooser duration as chosen");
 				sequenceDuration = sequenceDuration + eachChooser.duration} );
 
 		           this.duration_(sequenceDuration);
-			this.duration.debug(" sequence duration ")  }     }
+			// this.duration.debug(" sequence duration ")
+		}
+		}
 
 		//"===Ready to play above choices ====" .postln;
 		//"=========================".postln;

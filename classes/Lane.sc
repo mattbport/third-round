@@ -6,11 +6,11 @@
 Lane {
 	var <>weight;
 	var <>  tempo; // lanes can now have a tempo = allows play command to control tempo for midi clips
-	var <>loop;
-	var <>loopTimes;   // usually inf
-	var <>stop;
-	var < outBus;
-	var < sample;                // Sample has protocol -
+	var <> loop;
+	var <> loopTimes;   // usually inf
+	var <> stop;
+	var  < outBus;
+	var  <  sample;                // Sample has protocol -
 	                                       //play, duration, name, repeatTimes, synth
 	                                       // NESTING pretty sure could allow SAMPLE to be
 	                                       // chooser and so have nesting
@@ -34,7 +34,9 @@ Lane {
 	}
 
 
+	deepKill {this.sample.deepKill ; "'lane just passed on deepKill to sample".postln}
 
+	bugFix { arg num ; this.sample.bugFix (num) }
 
 
 *new { ^ super.new.init}
@@ -54,7 +56,7 @@ Lane {
 init{
 	weight = 1;
 	loop = false;
-    stop = \hard ;
+    stop = \hard ;       /// eh????????? see in this class hashardstop & hassoftstop
 	loopTimes = inf
 	}
 
@@ -63,17 +65,29 @@ init{
 		        this.sample.choose /* just in case its a chooser or sequence*/
 	}
 
+clean {
+		////this.copy
+	}
+
+        // STANDARD  COPY WILL WORTK
+		// should work cos doent matter if buffer shared
+		  /// and instacne of synth is not created till sample is played
+
+
+	/*
 copy {
 	var me;
 	me = Lane.new;
 		me.weight(this.weight);
+		me.tempo(this.tempo);
 		me.loop(this.loop);
 		me.loopTimes(this.loopTimes);
 		me.stop(this.stop); // copy
-		me.sample(this.sample.copy);
+		me.outbus_(this.outbus);
+		me.sample_(this.sample.copy);
 		^ me
 	}
-
+*/
 
 
 printOn { | aStream |
