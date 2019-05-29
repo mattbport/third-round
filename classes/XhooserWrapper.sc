@@ -121,11 +121,15 @@ hardPlay{ arg tcDuration;
 		   // this.clocks.add(myClock); // - OOPS dont want this being killed
 		     this.hardDuration(tcDuration);  // tough bug to find on new plays
 		     this.play;
-		myClock.sched( ( tcDuration ), // NO!!! DONT
+		this.debug("Playing nested loopable sequence ");
+		myClock.sched( ( tcDuration - 0.05)  ,
+			    // NO!!! DONT - but maybe do want    - 0.03 or maybe 0.05
 			    //this.chooser.kill - 3 ms early to give it time to kill
-			{this.chooser.kill;
+			       {this.chooser.kill;
+				    this.debug(" !!*********!!  hard stop  nested loopable sequence via kill");
+				   nil})
+	}
 			           //this.loopableSequence.deepKill}) // for the case where its a loopable Seq
-		})
 
 // this is excatly how time choosers (pre-) stop sample slots in lanes that contain  (wrappd) loopable sequecnes
 // note that at the time the top level time choosers is influencing this call,
@@ -134,7 +138,6 @@ hardPlay{ arg tcDuration;
 	// doesnt matter anyway - see above code
 	// AHAH!!!!! DONT KILL MY CLOCK!!!!!
 
-		}
 
 //we dont know choosers duration till we chooseLanes in the nested chooser
 // but we dont choose lanes in the nested chooser before parent chosoer says playchosen

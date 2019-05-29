@@ -357,7 +357,7 @@ d = Buffer.read(s, "/Users/matt/Documents/GitHub/third-round/classes/audio/bv8.w
 	var vox = PlayBuf.ar(2, b.bufnum, BufRateScale.kr(b.bufnum), pulsevox, (b.numFrames/gridvox)*anchorvox, 0, doneAction:0)*0.6;
 	var bv = PlayBuf.ar(2, d.bufnum, BufRateScale.kr(d.bufnum), pulsebv, (d.numFrames/gridbv)*anchorbv, 0, doneAction:0)*0.4;
 
-bass+bv+drums2
+drums2+drums1+bass
 
 }.play
 )
@@ -376,7 +376,7 @@ SampleBank.tempo_(61/60);
 ~lefthand = Xhooser.new;
 ~lefthand.name_("lefthand");
 ~lefthand.noseCone_(1);
-~lefthand.addLane(Lane.new.namedSample(\lefthand).loopOff.hardStopOn.weight_(inf));
+~lefthand.addLane(Lane.new.namedSample(\lefthand).loopOff.hardStopOn.weight_(3));
 ~lefthand.addLane(Lane.new.namedSample(\lefthand2).loopOff.hardStopOn.weight_(1));
 ~lefttime = TimeChooser.new;
 ~lefttime.noseCone_(1);
@@ -386,7 +386,7 @@ SampleBank.tempo_(61/60);
 ~righthand = Xhooser.new;
 ~righthand.name_("righthand");
 ~righthand.noseCone_(1);
-~righthand.addLane(Lane.new.namedSample(\righthand).loopOff.hardStopOn.weight_(inf));
+~righthand.addLane(Lane.new.namedSample(\righthand).loopOff.hardStopOn.weight_(2));
 ~righthand.addLane(Lane.new.namedSample(\righthand2).loopOff.hardStopOn.weight_(1));
 ~righttime = TimeChooser.new;
 ~righttime.noseCone_(1);
@@ -398,10 +398,10 @@ SampleBank.tempo_(61/60);
 ~piano.noseCone_(2);
 ~piano.addLane(Lane.new.nest(~lefthand).loopOn.hardStopOn.weight_(1));
 ~piano.addLane(Lane.new.nest(~righthand).loopOn.hardStopOn.weight_(1));
-~pianotime = TimeChooser.new;
-~pianotime.noseCone_(1);
-~pianotime.addLane(TimeLane.new.beats_(4*128));
-~piano.timeChooser_(~pianotime);
+// ~pianotime = TimeChooser.new;
+// ~pianotime.noseCone_(1);
+// ~pianotime.addLane(TimeLane.new.beats_(4*128));
+// ~piano.timeChooser_(~pianotime);
 
 ~violin = Xhooser.new;
 ~violin.name_("violin");
@@ -416,10 +416,13 @@ SampleBank.tempo_(61/60);
 
 ~parent = Xhooser.new;
 ~parent.name_("pianostrings");
-~parent.noseCone_(2);
+~parent.noseCone_(inf);
 ~parent.addLane(Lane.new.nest(~piano).loopOn.hardStopOn.weight_(1));
 ~parent.addLane(Lane.new.nest(~violin).loopOn.hardStopOn.weight_(1));
 
-
 ~parent.play;
+
+// samples just die after a while then, if you wait, they can be restarted
+// if the time choosers are set to fire quickly then the piano choosers will stop
+// after a given time - 16 repetitions
 )
