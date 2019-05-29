@@ -33,6 +33,14 @@ SampleBank{
 		samples.add(\strings3 -> Sample.new(\strings3 ,"strings3"));
 		samples.add(\pad1 -> Sample.new(\pad1 ,"pad1"));
 		samples.add(\pad2 -> Sample.new(\pad2 ,"pad2"));
+		samples.add(\lefthand -> Sample.new(\lefthand ,"lefthand"));
+		samples.add(\righthand -> Sample.new(\righthand ,"righthand"));
+		samples.add(\lefthand2 -> Sample.new(\lefthand2 ,"lefthand2"));
+		samples.add(\righthand2 -> Sample.new(\righthand2 ,"righthand2"));
+		samples.add(\violin1 -> Sample.new(\violin1 ,"violin1"));
+		samples.add(\violin2 -> Sample.new(\violin2 ,"violin2"));
+		samples.add(\violinsilence -> Sample.new(\violinsilence ,"violinsilence"));
+
 
        this.populateInC ;
 	   this.populateClap11;

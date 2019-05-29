@@ -362,3 +362,64 @@ bass+bv+drums2
 }.play
 )
 
+
+Server.killAll;
+s.boot;
+s.freeAll;
+SampleBank.populate;
+SampleBank.warmUp;
+SampleBank.tempo_(61/60);
+
+
+(
+
+~lefthand = Xhooser.new;
+~lefthand.name_("lefthand");
+~lefthand.noseCone_(1);
+~lefthand.addLane(Lane.new.namedSample(\lefthand).loopOff.hardStopOn.weight_(inf));
+~lefthand.addLane(Lane.new.namedSample(\lefthand2).loopOff.hardStopOn.weight_(1));
+~lefttime = TimeChooser.new;
+~lefttime.noseCone_(1);
+~lefttime.addLane(TimeLane.new.beats_(3)); // sample is 3 beats long
+~lefthand.timeChooser_(~lefttime);
+
+~righthand = Xhooser.new;
+~righthand.name_("righthand");
+~righthand.noseCone_(1);
+~righthand.addLane(Lane.new.namedSample(\righthand).loopOff.hardStopOn.weight_(inf));
+~righthand.addLane(Lane.new.namedSample(\righthand2).loopOff.hardStopOn.weight_(1));
+~righttime = TimeChooser.new;
+~righttime.noseCone_(1);
+~righttime.addLane(TimeLane.new.beats_(4)); // sample is 4 beats long, 3.5 is interesting
+~righthand.timeChooser_(~righttime);
+
+~piano = Xhooser.new;
+~piano.name_("piano");
+~piano.noseCone_(2);
+~piano.addLane(Lane.new.nest(~lefthand).loopOn.hardStopOn.weight_(1));
+~piano.addLane(Lane.new.nest(~righthand).loopOn.hardStopOn.weight_(1));
+~pianotime = TimeChooser.new;
+~pianotime.noseCone_(1);
+~pianotime.addLane(TimeLane.new.beats_(4*128));
+~piano.timeChooser_(~pianotime);
+
+~violin = Xhooser.new;
+~violin.name_("violin");
+~violin.noseCone_(1);
+~violin.addLane(Lane.new.namedSample(\violin1).loopOff.hardStopOn.weight_(1));
+~violin.addLane(Lane.new.namedSample(\violin2).loopOff.hardStopOn.weight_(1));
+~violin.addLane(Lane.new.namedSample(\violinsilence).loopOff.hardStopOn.weight_(2));
+~violintime= TimeChooser.new;
+~violintime.noseCone_(1);
+~violintime.addLane(TimeLane.new.beats_(2*4)); // sample is 2 bars long
+~violin.timeChooser_(~violintime);
+
+~parent = Xhooser.new;
+~parent.name_("pianostrings");
+~parent.noseCone_(2);
+~parent.addLane(Lane.new.nest(~piano).loopOn.hardStopOn.weight_(1));
+~parent.addLane(Lane.new.nest(~violin).loopOn.hardStopOn.weight_(1));
+
+
+~parent.play;
+)
