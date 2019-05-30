@@ -380,7 +380,7 @@ SampleBank.tempo_(61/60);
 ~lefthand.addLane(Lane.new.namedSample(\lefthand2).loopOff.hardStopOn.weight_(1));
 ~lefttime = TimeChooser.new;
 ~lefttime.noseCone_(1);
-~lefttime.addLane(TimeLane.new.beats_(3)); // sample is 3 beats long
+~lefttime.addLane(TimeLane.new.beats_(3 )); // sample is 3 beats long
 ~lefthand.timeChooser_(~lefttime);
 
 ~righthand = Xhooser.new;
@@ -425,4 +425,5 @@ SampleBank.tempo_(61/60);
 // samples just die after a while then, if you wait, they can be restarted
 // if the time choosers are set to fire quickly then the piano choosers will stop
 // after a given time - 16 repetitions
+// slight pause in the loop - Simon's fix?
 )
