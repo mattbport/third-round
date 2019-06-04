@@ -411,7 +411,7 @@ SampleBank.tempo_(61/60);
 ~violin.addLane(Lane.new.namedSample(\violinsilence).loopOff.hardStopOn.weight_(2));
 ~violintime= TimeChooser.new;
 ~violintime.noseCone_(1);
-~violintime.addLane(TimeLane.new.beats_(8)); // sample is 2 bars long
+~violintime.addLane(TimeLane.new.beats_(8)); // sample is 2 bars long = 8. 10 works nicely
 ~violin.timeChooser_(~violintime);
 
 ~parent = Xhooser.new;
