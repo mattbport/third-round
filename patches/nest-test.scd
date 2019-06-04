@@ -357,7 +357,7 @@ d = Buffer.read(s, "/Users/matt/Documents/GitHub/third-round/classes/audio/bv8.w
 	var vox = PlayBuf.ar(2, b.bufnum, BufRateScale.kr(b.bufnum), pulsevox, (b.numFrames/gridvox)*anchorvox, 0, doneAction:0)*0.6;
 	var bv = PlayBuf.ar(2, d.bufnum, BufRateScale.kr(d.bufnum), pulsebv, (d.numFrames/gridbv)*anchorbv, 0, doneAction:0)*0.4;
 
-drums2+drums1+bass
+drums2+drums1+bass+bv
 
 }.play
 )
@@ -380,7 +380,7 @@ SampleBank.tempo_(61/60);
 ~lefthand.addLane(Lane.new.namedSample(\lefthand2).loopOff.hardStopOn.weight_(1));
 ~lefttime = TimeChooser.new;
 ~lefttime.noseCone_(1);
-~lefttime.addLane(TimeLane.new.beats_(3 )); // sample is 3 beats long
+~lefttime.addLane(TimeLane.new.beats_(3)); // sample is 3 beats long
 ~lefthand.timeChooser_(~lefttime);
 
 ~righthand = Xhooser.new;

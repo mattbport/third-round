@@ -10,6 +10,7 @@ Lane {
 	var <> loopTimes;   // usually inf
 	var <> stop;
 	var  < outBus;
+	var  <> parentName;
 	var  <  sample;                // Sample has protocol -
 	                                       //play, duration, name, repeatTimes, synth
 	                                       // NESTING pretty sure could allow SAMPLE to be
@@ -19,9 +20,15 @@ Lane {
 	                                       // but that  would be icky and make cleaning memory hard
 	                                       // so we pass time chooser to sample as a parameter when needed
 
+group{ arg g;
+		this.sample.group_(g)
+	}
+
+
 	sample_{
 		arg aSample;
-		sample = aSample.copy
+		sample = aSample.kopy; // not needed fro new instacne but may help with group & parent racking
+		sample.parentName_(this.parentName);
 		^this
 	}
 
@@ -69,9 +76,38 @@ clean {
 		////this.copy
 	}
 
-        // STANDARD  COPY WILL WORTK
-		// should work cos doent matter if buffer shared
-		  /// and instacne of synth is not created till sample is played
+//  COPY
+//  COPY
+//  COPY
+//  NB STANDARD  COPY WILL WORK BECASUE:
+	      // want to make sure ref to node id (synth) is not shared)
+		//  doesnt matter if buffer shared
+	  ///  instacne of synth is not created till sample is played
+	 //  WHICH IS AFTER  the copy has been made by loop[able sequecne
+	// WRONG!!!!!!! these will be shared samples by the two lane copies  !!!!!!!!!!!
+
+
+kopy{ var me;
+		  /// used in loopablesequecne
+		// we just want fresh lanes to get us fresh sample insatcnes
+		// to avoid sinadvertent ample instacne reuse
+		// and wrong node getting killed
+		// got to be kopy or will be infinite loop
+		// make a copy of me
+		//copy my lanes separaelt using bog standard copy
+		// so its kinds semi deep copy
+		// copies will share the samples
+		// butsamp[les havent been played yet.
+		// so have no synths stsoted in synth instacne variable
+		//each play will create a new node ID and a  create & stire new synth
+		//the two samples will save synths spereately
+		// and so handle swithcing on and off propely (play & free)
+		 me = this.copy;
+		me.sample_(this.sample.copy);
+		// but what if samole is a wrapper????
+		^ me }
+
+
 
 
 	/*
@@ -321,6 +357,10 @@ calculateSmartDurationWithChosenTimeLaneForParent{  //KEY METHOD
 
 	}
 
+kill {
+		this.sample.kill;
+		this.name.debug(" PASSING ON INSTRUCTED FREE Thru lane " );
+	}
 
 
 // ========== duration helper in case of finite repetition loops==================

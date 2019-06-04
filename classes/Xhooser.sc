@@ -1,17 +1,18 @@
 // SHOULD  HAVE COMMON SUPERCLASS WITH TIMECHOOSER
 Xhooser {
 	var <>noseCone;
-	var <>lanes;
-	var <>chosenLanes;
+	var <>lanes; // COPY - should be careful copy
+	var <>chosenLanes; // COPY - should be new
 	var <> timeChooser;
 	var <> journal ;
 	var <> name;
 	var <> hasParent;
 	var <> outBus;
-	var <> myclocks;  // maye be needed for nesting -NO !! in wrapper!!
+	var <> myclocks; // COPY - should be new
+	    // maye be needed for nesting -NO !! in wrapper!!
 	   // but could record an event stream - instance of non det command pattern?
 	   // approx 1000 LOC total
-	var <> group;
+	var <> group;  // COPY - should be new
 
 // =====  INITIALIZATION	 =======
 init{
@@ -26,6 +27,10 @@ init{
 *new { ^ super.new.init}
 
 kopy{ var me, nuLanes;
+		  /// used in loopablesequecne
+		// we just want fresh lanes to get us fresh sample insatcnes
+		// to avoid sinadvertent ample instacne reuse
+		// and wrong node getting killed
 		// got to be kopy or will be infinite loop
 		// make a copy of me
 		//copy my lanes separaelt using bog standard copy
@@ -37,9 +42,20 @@ kopy{ var me, nuLanes;
 		//the two samples will save synths spereately
 		// and so handle swithcing on and off propely (play & free)
 		 me = this.copy;
-		nuLanes = (this.lanes.collect{ arg eachLane ; eachLane.copy}).asList;
+		nuLanes = (this.lanes.collect{ arg eachLane ; eachLane.kopy}).asList;
 		me.lanes_(nuLanes);
+		//loopsSeq needs to set new group here.
+		// what about when a loopabel sequ is the thing in the loopable seq??
+		// LAnes are not chosen yet  in loopable seq when this is coped
+		// clocks are not used in this class
 		^ me }
+
+myGroup{ arg g;
+		// called by looupable sequecne
+		   this.group_(g); // nasty pointless dangerous duplication memo
+		this.lanes.do{arg each; each.group(g)}
+		   // nb telling samples ie synth defs ie synths not created yet
+	}
 
 
 /*
@@ -92,6 +108,7 @@ bakeNest {
 // ====== LANE ADDING & REMOVAL  =========
 addLane{
 		arg aLane;
+		aLane.parentName_(this.name);
 		this.lanes.add(aLane);
 		// this.lanes.debug("lanes")
 	}

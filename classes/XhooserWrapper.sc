@@ -16,8 +16,21 @@ XhooserWrapper // Decorator (I think)
 	    var  <>loop;
 	    var <> smartDuration = 0;   // gets set for me by lane
 	    var  <> loopableSequence;
+	    var <>parentName;
+	    var<>  group;
 	    // var <> chooser; // some redundncy? always in loopable? but convenient - now a method
 	    var <> clocks;
+
+
+	kopy { var me;
+		      me = this.copy;
+		      me.group_(Group.new);
+		me.parentName_("kopy wrapper - who is parent?");
+		this.loopableSequence_(this.loopableSequence.kopy)
+		// shouldnt group be different?  YES - like differetn instance of sample has own node
+		^ me
+	}
+
 
 
 	// should have 'add'  that takes argument Xhooser and automatically puuts its in a loopable sequencer
@@ -37,6 +50,7 @@ hasNoLoop {
 
 // CREATING & INITIALIZING =========
 
+	// why the wav stuff???
 *new { arg  aName, aWavName;
 			var me = super.new;
 		     me.name_(aName.asSymbol);
@@ -44,8 +58,10 @@ hasNoLoop {
 			^ me.init}
 
 init {  loopableSequence = LoopableSequence.new;
+		 this.group_(Group.new);
+		 loopableSequence.group_(this.group);
 		  clocks = List.new;
-		  name = "nested chooser"
+		  name = "Nested chooser wrapper"
 		}
 
 
@@ -83,7 +99,7 @@ wrap { arg aLoopableSequence;
 
 play { //this.choose
 		 // now we know duration so can calculate loopage
-
+		 this.group_(Group.new); /// Interesting
 		this.loopableSequence.play  }
 
 
@@ -105,7 +121,14 @@ stop { this.loopableSequence.stop}
 
 clear { this.loopableSequence.clear}
 
-kill{ this.loopableSequence.kill }
+kill{ this.loopableSequence.kill } // to be implemeneted as KillnoRedo
+
+killNoReDo{ this.loopableSequence.killNoReDo}
+killAllowReDo{ this.loopableSequence.killJustThisIterationOfLoop}
+killInnerGroup{ this.loopableSequence.killInnerGroup}
+// Note - the synths in both cases probbaly currently all have same  group
+
+
 
 deepKill {this.loopableSequence.deepKill}
 
@@ -121,12 +144,17 @@ hardPlay{ arg tcDuration;
 		   // this.clocks.add(myClock); // - OOPS dont want this being killed
 		     this.hardDuration(tcDuration);  // tough bug to find on new plays
 		     this.play;
-		this.debug("Playing nested loopable sequence ");
-		myClock.sched( ( tcDuration - 0.05)  ,
+		//*** this.debug("Playing nested loopable sequence ");
+		myClock.sched( ( tcDuration   /*- 0.005 - 0.05 */)  ,
+			     // should not be needed - even if killnoredo comes late
+			    // should have the means to kill unneeded  next shooser
+			    // that  has already started
+
 			    // NO!!! DONT - but maybe do want    - 0.03 or maybe 0.05
 			    //this.chooser.kill - 3 ms early to give it time to kill
-			       {this.chooser.kill;
-				    this.debug(" !!*********!!  hard stop  nested loopable sequence via kill");
+			       {// this.group.free;
+				    this.chooser.killNoReDo;
+				    this.debug(" NESTED HARD STOP loopSeq kill - group" + group.asString);
 				   nil})
 	}
 			           //this.loopableSequence.deepKill}) // for the case where its a loopable Seq

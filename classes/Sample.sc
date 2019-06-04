@@ -6,6 +6,8 @@ Sample{                     // synthDef is creaed by warmup but sorta lives on s
 	    var <> wavName;         //  filled by new
 	    var <>atomicRepeats;   // not yet used
 	    var  <> loop   ;
+	   var  <> group;
+	   var<> parentName;
 	    var <> outBus = 0;                   // -1 to 1 doents appear to be workig
 	    var  <> smartDuration;  // not need to play correctly. Need to report duration
 	                                         // correctly when controlled by external environment
@@ -46,6 +48,7 @@ setHardDurationLimit{ } // used by XhooserWrapper
 
 init {
 		this.createBuffer;
+		this.parentName_ ("unknown");
 		this.name.postln;
 	  //  "Creating buffer for single sample- Wait before warming up".postln
 
@@ -62,7 +65,12 @@ bugFix { arg num;  // synth def vs synth .... confused...
 	// that does not get changed between a play and a hard stop
 
 
-
+kopy
+	{   var me;
+		 me = this.copy; // play will create a new synth
+		me.group_(nil); //filled in by ? after copy
+		me.parentName_("create unplayed ungrouped sample with unknown parent")
+	}
 
 
 
@@ -94,18 +102,23 @@ createSynthDef {
 		    //(this.name == \clap11).if{ outBus= 1};  // daft appraoch - just an experiment
 			SynthDef(this.name , {arg loop=0, volume=0.5, outputBus=0;
 			Out.ar(outputBus,
-				     PlayBuf.ar(2, this.buffer.bufnum, BufRateScale.kr(this.buffer.bufnum),
-					loop:loop, doneAction:2)*volume )
+				     PlayBuf.ar(2, this.buffer.bufnum,
+					                     BufRateScale.kr(this.buffer.bufnum),
+					                   loop:loop, doneAction:2)*volume )
+			                                       // WAS done action 2
 			}).add;
 
 		        }
 
 // ========== PLAYING ===================
-play {   synth = Synth(this.name);   // creates & stores a synth instnce
+play {   this.group.isNil.if(
+		          {synth = Synth(this.name)},   // creates & stores a synth instnce
+			      {synth = Synth.after(this.group,  this.name) });
+
 		   synth.set(\outputBus, this.outBus);
 		// this.outBus.debug("In sample");
-		this.name.debug("creating new synth in sample instance");
-		 synth.asNodeID.debug("with Node ID");
+	this.name.debug("CREATE synth" +  "node ID" + synth.asNodeID.asString + "with parent" + this.parentName);
+
 		     synth.set(\loop, this.loopStatus);}
 	                                                               //starts playing as soon as created
 
@@ -117,9 +130,9 @@ hardPlay{ arg tcDuration;
 	     	 var  t =   TempoClock(SampleBank.tempo); // queried by lane & chooser
 		     this.hardDuration(tcDuration);  // tough bug to find on new plays
 		     this.play; // creates a synth instance
-		t.sched( (tcDuration- 0.03),   {this.synth.free; // frees the stored instacne
-		           this.name.debug(" !!=======!!  hard stop using free");
-			       this.synth.asNodeID.debug("... for node ID") ;
+		t.sched( (tcDuration  /*- 0.03  */),   {this.synth.free; // frees the stored instacne
+			this.name.debug(" HARD STOP" + "node ID" + synth.asNodeID.asString);
+			      //***  this.synth.asNodeID.debug("... for node ID") ;
 			       nil} )
 	}
 
@@ -136,8 +149,15 @@ softPlay{ arg tcDuration;
 
 pause {
 			this .synth.run(false) }
+
+killNoReDo{this.kill}
+kill{ this.free}
+
 free {
-			this .synth.free}
+			this .synth.free;
+		     synth.asNodeID.isNil.not.if(
+			{this.name.debug("INSTRUCTED FREE in SAMPLE " + "node ID" + synth.asNodeID.asString + "with parent" + this.parentName)});
+	}
 
 resume {
 			this.synth.run(true) }
