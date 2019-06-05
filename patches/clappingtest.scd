@@ -1,70 +1,3 @@
-Server.killAll;
-s.boot;
-s.freeAll;
-SampleBank.populate;
-SampleBank.warmUp;
-SampleBank.tempo_(122/60);
-
-
-// Simple NIN soundable chooser
-(
-~ch1 = Xhooser.new;
-~ch1.noseCone_(2);
-~ch1.addLane( Lane.new.weight_(2).namedSample(\drums).loopOn);
-~ch1.addLane( Lane.new.weight_(1).namedSample(\bass).loopOn);
-~ch1.addLane( Lane.new.weight_(1).namedSample(\guitar).loopOn);
-
-~ch1.play;
-)
-
-
-
-// Sequencing and Time Choosers
-
-(
-~ch1 = Xhooser.new;
-~ch1.noseCone_(2);
-~ch1.addLane( Lane.new.weight_(1).namedSample(\drums).loopOn);
-~ch1.addLane( Lane.new.weight_(2).namedSample(\bass).loopOn);
-~ch1.addLane( Lane.new.weight_(inf).namedSample(\vox).loopOn.softStopOn);
-~tc1 = TimeChooser.new;
-~tc1.noseCone_(1);
-~tc1.addLane( TimeLane.new.weight_(1).beats_(4*4));
-~tc1.addLane( TimeLane.new.weight_(2).beats_(4*6));
-~ch1.timeChooser_(~tc1);
-)
-
-(
-~ch2 = Xhooser.new;
-~ch2.noseCone_(inf);
-~ch2.addLane( Lane.new.weight_(2).namedSample(\drums).loopOn);
-~ch2.addLane( Lane.new.weight_(2).namedSample(\bass).loopOn);
-~ch2.addLane( Lane.new.weight_(1).namedSample(\guitar).loopOn);
-~ch2.addLane( Lane.new.weight_(inf).namedSample(\marimba).loopOn);
-~ch2.addLane( Lane.new.weight_(1).namedSample(\bvs).loopOn.softStopOn);
-~ch2.addLane( Lane.new.weight_(inf).namedSample(\vox).loopOn.softStopOn);
-~tc2 = TimeChooser.new;
-~tc2.noseCone_(1);
-~tc2.addLane( TimeLane.new.beats_(4*6));
-~ch2.timeChooser_(~tc2);
-)
-
-~ch1.play;
-~ch2.play;
-
-
-(
-~s4 = LoopableSequence.new;
-~s4.add (~ch1);
-~s4.add (~ch2);
-)
-~s4.play;
-
-
-//////////////
-// Phase music
-/////////////
-
 (
 a = Buffer.read(s, "/Users/matt/Documents/GitHub/third-round/classes/audio/clap1.wav");
 b = Buffer.read(s, "/Users/matt/Documents/GitHub/third-round/classes/audio/clap2.wav");
@@ -135,3 +68,52 @@ e = Buffer.read(s, "/Users/matt/Documents/GitHub/third-round/classes/audio/froze
 
 }.play
 )
+
+///////////
+
+// Drums test using anchor grid offset
+(
+{
+	arg now, grid = 8, anchor = 3; // start at 0, move to 12
+	var clap1 = PlayBuf.ar(2, d.bufnum, BufRateScale.kr(d.bufnum), now, 0, 1, doneAction:2);
+
+	var clap2 = PlayBuf.ar(2, d.bufnum, BufRateScale.kr(d.bufnum), now, (b.numFrames/grid)*anchor, 1, doneAction:2);
+
+	var sound = Balance2.ar(clap1[0], clap1[1], -0.4) + Balance2.ar(clap2[0], clap2[1], 0.4);
+
+	sound
+}.play
+)
+
+
+// Drums test with three drum files and two anchor offsets
+(
+{
+	arg now, grid1 = 16, grid2 = 16, anchor1 = 5, anchor2 = 11; // start at 0, move to 12
+	var clap1 = PlayBuf.ar(2, d.bufnum, BufRateScale.kr(d.bufnum), now, 0, 1, doneAction:2);
+	var clap2 = PlayBuf.ar(2, d.bufnum, BufRateScale.kr(d.bufnum), now, (b.numFrames/grid1)*anchor1, 1, doneAction:2);
+	var clap3 = PlayBuf.ar(2, d.bufnum, BufRateScale.kr(d.bufnum), now, (b.numFrames/grid2)*anchor2, 1, doneAction:2)*0.6;
+	var sound = Balance2.ar(clap1[0], clap1[1], -1) + Balance2.ar(clap2[0], clap2[1], 1) + clap3;
+
+	Clip.ar(sound, -0.2, 0.2)
+
+}.play
+)
+
+
+// Random offsets which post choices to audition and then select
+(
+{
+	arg now, grid1 = 16, grid2 = 16;
+	var anchor1 = rrand(1, 12).postln;
+	var anchor2 = rrand(1,12).postln; // start at 0, move to 12
+	var clap1 = PlayBuf.ar(2, d.bufnum, BufRateScale.kr(d.bufnum), now, 0, 1, doneAction:2);
+	var clap2 = PlayBuf.ar(2, d.bufnum, BufRateScale.kr(d.bufnum), now, (b.numFrames/grid1)*anchor1, 1, doneAction:2);
+	var clap3 = PlayBuf.ar(2, d.bufnum, BufRateScale.kr(d.bufnum), now, (b.numFrames/grid2)*anchor2, 1, doneAction:2)*0.6;
+	var sound = Balance2.ar(clap1[0], clap1[1], -1) + Balance2.ar(clap2[0], clap2[1], 1) + clap3;
+
+	Clip.ar(sound, -0.2, 0.2)
+
+}.play
+)
+
