@@ -17,21 +17,58 @@ XhooserWrapper // Decorator (I think)
 	    var <> smartDuration = 0;   // gets set for me by lane
 	    var  <> loopableSequence;
 	    var <>parentName;
-	    var<>  group;
+	    var <> siblingGroup;
+	    var<>  group; /// when this is doube lesetd it ends as holding siblinbg group!!!
 	    // var <> chooser; // some redundncy? always in loopable? but convenient - now a method
 	    var <> clocks;
+	     var <> outerClocks;
+	     var <>outbus ; // just for protocol compliance with sample
+
+// aha- you can only put synths in groups - not choosers......
 
 
 	kopy { var me;
 		      me = this.copy;
-		      me.group_(Group.new);
-		me.parentName_("kopy wrapper - who is parent?");
-		this.loopableSequence_(this.loopableSequence.kopy)
+		     // will have same sibling group & both  clocks =- except not yet set at timeof Kopy
+		      me.group_(Group.new);  // IS THAT RIGHT?????
+		// me.parentName_("kopy wrapper - who is parent?");
+		this.loopableSequence_(this.loopableSequence.kopy);
+		//this.clocks = List.new;
+	     //this.outerClocks= List.new;
 		// shouldnt group be different?  YES - like differetn instance of sample has own node
 		^ me
 	}
 
+cleanUp {
+		this.cleanUpClocks;
+		this.cleanUpOuterClocks;
+		this.cleanUpRest;
+	}
 
+cleanUpClocks {
+		this.clocks.do { arg eachClock, i;    eachClock.isNil.not.if{ eachClock.stop}};
+		this.clocks_( nil)
+	}
+
+cleanUpOuterClocks {
+		this.outerClocks.do { arg eachClock, i;    eachClock.isNil.not.if{ eachClock.stop}};
+		this.outerClocks_( nil)
+	}
+
+
+cleanUpRest {
+		this.buffer_ (nil); // never assigned - just for sommon protocol
+		this.synth_(nil); // never assigned - just for sommon protocol
+		this.name_(nil);
+		this.wavName_(nil);
+		this.atomicRepeats_(nil);
+		this.loop_(nil);
+		this.smartDuration_(nil);
+		this.loopableSequence.cleanUp;
+		this.parentName_(nil);
+		this.group_(nil);
+		this.siblingGroup_(nil);
+	}
 
 	// should have 'add'  that takes argument Xhooser and automatically puuts its in a loopable sequencer
 
@@ -58,9 +95,11 @@ hasNoLoop {
 			^ me.init}
 
 init {  loopableSequence = LoopableSequence.new;
-		 this.group_(Group.new);
-		 loopableSequence.group_(this.group);
+		  this.group_(Group.new);
+		  loopableSequence.group_(this.group);
+		loopableSequence.siblingGroup(this.siblingGroup);
 		  clocks = List.new;
+		  outerClocks = List.new;
 		  name = "Nested chooser wrapper"
 		}
 
@@ -89,9 +128,11 @@ loopOff {
 wrap { arg aLoopableSequence;
 		//this.chooser_ (aChooser);
 		//this.chooser.hasParent(true); // not even used - but is defined in Xhooser
-		this.loopableSequence.add(aLoopableSequence) // .. holds 'choose r'in 2  suggetsive places
+		this.loopableSequence.add(aLoopableSequence) ;// .. holds 'choose r'in 2  suggetsive places
 		        // though it is same chooser - not a duplicate - still - smells a bit funny
 		        // it may well  actually be a loopable seqeucne
+		this.loopableSequence.name_( this.name);
+		this.loopableSequence.name.debug("before any looping, wrapping loopableSequence name");
 	}
 
 	chooser { ^ 	this.loopableSequence}
@@ -121,11 +162,14 @@ stop { this.loopableSequence.stop}
 
 clear { this.loopableSequence.clear}
 
+outerClear { this.outerClocks.do{ arg each; each.clear}}
+	outerStop { this.outerClocks.do{ arg each; each.stop}}
+
 kill{ this.loopableSequence.kill } // to be implemeneted as KillnoRedo
 
 killNoReDo{ this.loopableSequence.killNoReDo}
-killAllowReDo{ this.loopableSequence.killJustThisIterationOfLoop}
-killInnerGroup{ this.loopableSequence.killInnerGroup}
+//killAllowReDo{ this.loopableSequence.killJustThisIterationOfLoop}
+//killInnerGroup{ this.loopableSequence.killInnerGroup}
 // Note - the synths in both cases probbaly currently all have same  group
 
 
@@ -141,7 +185,8 @@ deepKill {this.loopableSequence.deepKill}
 
 hardPlay{ arg tcDuration;
 	     	 var  myClock =   TempoClock(SampleBank.tempo);
-		   // this.clocks.add(myClock); // - OOPS dont want this being killed
+		   //this.outerClocks.add(myClock); // - OOPS dont want this being killed
+		  // well- I do at the right time.
 		     this.hardDuration(tcDuration);  // tough bug to find on new plays
 		     this.play;
 		//*** this.debug("Playing nested loopable sequence ");
@@ -154,7 +199,9 @@ hardPlay{ arg tcDuration;
 			    //this.chooser.kill - 3 ms early to give it time to kill
 			       {// this.group.free;
 				    this.chooser.killNoReDo;
-				    this.debug(" NESTED HARD STOP loopSeq kill - group" + group.asString);
+                    this.cleanUp;
+				   //  this.debug(" NESTED HARD STOP loopSeq kill - group" + group.asString);
+				    	// this.outerStop; // probably silly
 				   nil})
 	}
 			           //this.loopableSequence.deepKill}) // for the case where its a loopable Seq
@@ -182,7 +229,7 @@ softPlay{ arg tcDuration;
               this.play;
 
 		      (tcDuration > this.basicDuration).if{
-			   myClock.sched( tcDuration + (this.duration/100),   {this.loopOff})}
+			myClock.sched( tcDuration + (this.duration/100),   {this.loopOff; myClock.clear})}
 	}
 
 	/*

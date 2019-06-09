@@ -11,6 +11,25 @@ TimeLane {
 	                                      // maybe this is silly - just have an empty list
 	                                     // and make the distinctions procedurally
 
+
+cleanUp {
+		this.cleanUpSample;
+		this.cleanUpRest
+	}
+
+cleanUpSample	 {
+		this.sample.isNil.not.if { this.sample.cleanUp}
+	}
+
+cleanUpRest {
+		this.weight_ (nil); // never assigned - just for sommon protocol
+		this.playable_(nil); // never assigned - just for sommon protocol
+		this.beats_(nil);
+	}
+
+
+
+
 init{
 	weight = 1;
 	playable = false;

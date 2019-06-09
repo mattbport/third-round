@@ -245,8 +245,9 @@ ch1.noseCone_(1);
 ch1.addLane( Lane.new.weight_(inf).sample_( PBank.make(\clap12, \loopOn)));
 tc1 = TimeChooser.new;
 tc1.noseCone_(1);
-tc1.addLane( TimeLane.new.beats_(8*6));
+tc1.addLane( TimeLane.new.beats_(8*48));
 ch1.timeChooser_(tc1);
+
 
 
 //  CREATE 7 FULL Claps chooser (ch2)
@@ -292,7 +293,7 @@ ch4.addLane( Lane.new.weight_(inf).nest(seq2));
 ch4.addLane( Lane.new.weight_(inf).nest(seq1));
 tc4 = TimeChooser.new;
 tc4.noseCone_(1);
-tc4.addLane( TimeLane.new.beats_(48)); // 48*12 = 576
+tc4.addLane( TimeLane.new.beats_(48*12)); // 48*12 = 576
 ch4.timeChooser_(tc4);
 ^ch4
 

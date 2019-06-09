@@ -20,14 +20,36 @@ Lane {
 	                                       // but that  would be icky and make cleaning memory hard
 	                                       // so we pass time chooser to sample as a parameter when needed
 
+
+cleanUp {
+		this.cleanUpSample;
+		this.cleanUpRest
+	}
+
+cleanUpSample	 {
+		this.sample.cleanUp
+	}
+
+
+cleanUpRest {
+		this.weight_ (nil); // never assigned - just for sommon protocol
+		this.tempo_(nil); // never assigned - just for sommon protocol
+		this.loop_(nil);
+		this.loopTimes_(nil);
+		this.stop_(nil);
+		// this.outBus_(nil);
+		this.parentName_(nil);
+	}
+
+
 group{ arg g;
 		this.sample.group_(g)
 	}
 
-
-	sample_{
+sample_{
 		arg aSample;
-		sample = aSample.kopy; // not needed fro new instacne but may help with group & parent racking
+		sample = aSample.kopy;
+		// not needed for new instacne but may help with group & parent tracking
 		sample.parentName_(this.parentName);
 		^this
 	}
@@ -35,7 +57,7 @@ group{ arg g;
 	outBus_{
 		arg aBool;
 		outBus = aBool;
-		outBus.debug("Setting outBus in Lane");
+		// outBus.debug("Setting outBus in Lane");
 		this.sample.outBus_(outBus);
 		^this
 	}
@@ -44,7 +66,6 @@ group{ arg g;
 	deepKill {this.sample.deepKill ; "'lane just passed on deepKill to sample".postln}
 
 	bugFix { arg num ; this.sample.bugFix (num) }
-
 
 *new { ^ super.new.init}
 
@@ -102,9 +123,9 @@ kopy{ var me;
 		//each play will create a new node ID and a  create & stire new synth
 		//the two samples will save synths spereately
 		// and so handle swithcing on and off propely (play & free)
-		 me = this.copy;
-		me.sample_(this.sample.copy);
-		// but what if samole is a wrapper????
+		me = this.copy;
+		me.sample_(this.sample.kopy);
+		// but what if sample is a wrapper???? SO why does KOPY screw up?
 		^ me }
 
 
@@ -202,6 +223,7 @@ hasActiveTimeChooser{
 nest{arg aChooser;
 		var wrapper;
 		wrapper = XhooserWrapper.new;
+		wrapper.name_("containing" + aChooser.name);
 		wrapper.wrap(aChooser);
 		this.sample_(wrapper) }
 

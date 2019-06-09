@@ -9,6 +9,9 @@ PWrapper
 	    var <> wavName;         // filled by new
 	    var <> atomicRepeats;  // not yet used
 	    var <> loop;
+	var <> parentName;
+	var<> group;
+	var <> siblingGroup;
 	    var <> smartDuration;  // not need to play correctly. Need to report duration
 	                                         // correctly when controlled by external environment
 	   var <> midiClip ;             // defines relevant common protocol
@@ -22,6 +25,9 @@ PWrapper
     resume {	this.synth.run(true) }
 	duration{^  this.midiClip.duration}
 
+	kopy {
+		       ^ this .copy
+	}
 
 	copy { var pWrap = PWrapper.new;
 		pWrap.wrap ( this.midiClip.copy);

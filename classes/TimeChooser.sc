@@ -15,23 +15,40 @@ addLane{
 		arg aLane;
 		this.lanes.add(aLane)}
 
-//======= Printing  ==========
 
+cleanUp {
+		this.cleanUpLanes;
+		this.cleanUpRest
+	}
+
+cleanUpLanes {
+		this.chosenLane.isNil.not.if { this.chosenLane.cleanUp} ;
+		this.chosenLane_(nil);
+		this.lanes.do { arg each ;  each.isNil.not.if{ each.cleanUp }} ;
+		this.lanes_(nil)
+	}
+
+cleanUpRest {
+		this.noseCone_ (nil);
+		this.name_(nil);
+	}
+
+//======= Printing  ==========
 
 copy {
 	var me;
-	me = TimeChooser.new;
-		me.noseCone(this.noseCone);
-				me.lanes(this.lanes.copy); //deepcopy?
-				me.chosenLane(this.chosenLane.copy); //deepcopy?
-				me.name (this.name
-
-		);
+	    me = TimeChooser.new;
+		me.noseCone_(this.noseCone);
+				me.lanes_(this.lanes.deepCopy); //deepcopy?
+				me.chosenLane_(this.chosenLane.deepCopy); //deepcopy?
+		        me.chooseLane;
+				me.name_(this.name);
 		^ me
 	}
 
-
-
+	kopy{
+		^ this.copy
+	}
 
 
 	printOn { | aStream |
@@ -64,6 +81,7 @@ allLaneWeightsZero{
 		}
 
 isActive{
+		//this.noseCone.debug("Nose cone") ;
 		^ this.noseConeIsZero.not.and(  {this.allLaneWeightsZero.not } )
 	        }
 

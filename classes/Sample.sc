@@ -12,6 +12,21 @@ Sample{                     // synthDef is creaed by warmup but sorta lives on s
 	    var  <> smartDuration;  // not need to play correctly. Need to report duration
 	                                         // correctly when controlled by external environment
 
+cleanUp {
+		// this.buffer.free;
+		this.synth.isNil.not.if{ this.synth.free};
+		this.name_(nil);
+		this.wavName_(nil);
+		this.atomicRepeats_(nil);
+		this.loop_(nil);
+		this.group_(nil);
+		this.parentName_(nil);
+		this.outBus_(nil);
+		this.smartDuration_(nil);
+	}
+
+
+
 // ============= QUERYING AND SETTING =======
 hasLoop {
 		^this.loop == true}
@@ -36,7 +51,19 @@ isWrapper { ^ false}
 
 deepKill { this.free } // this is implemented by Xhooser Wrapperss
 
+
+//trimStart
+//anchorPoint
+// grid
+
+
 // CREATING & INITIALIZING =========
+
+
+
+
+
+
 
 setHardDurationLimit{ } // used by XhooserWrapper
 
@@ -49,7 +76,7 @@ setHardDurationLimit{ } // used by XhooserWrapper
 init {
 		this.createBuffer;
 		this.parentName_ ("unknown");
-		this.name.postln;
+		// this.name.postln;
 	  //  "Creating buffer for single sample- Wait before warming up".postln
 
 	}
@@ -68,8 +95,11 @@ bugFix { arg num;  // synth def vs synth .... confused...
 kopy
 	{   var me;
 		 me = this.copy; // play will create a new synth
-		me.group_(nil); //filled in by ? after copy
+		// me.group_(nil); //filled in by ? after copy
+		//  DOES NOT ESCAPESSIBLING GROUP marking
+		//  BECAUSE  marking done after creating copy
 		me.parentName_("create unplayed ungrouped sample with unknown parent")
+		^me
 	}
 
 
@@ -111,7 +141,7 @@ createSynthDef {
 		        }
 
 // ========== PLAYING ===================
-play {   this.group.isNil.if(
+play {   this.group.isNil.if(  /// if its not nill then place it like this
 		          {synth = Synth(this.name)},   // creates & stores a synth instnce
 			      {synth = Synth.after(this.group,  this.name) });
 
@@ -131,7 +161,9 @@ hardPlay{ arg tcDuration;
 		     this.hardDuration(tcDuration);  // tough bug to find on new plays
 		     this.play; // creates a synth instance
 		t.sched( (tcDuration  /*- 0.03  */),   {this.synth.free; // frees the stored instacne
+
 			this.name.debug(" HARD STOP" + "node ID" + synth.asNodeID.asString);
+			t.clear;
 			      //***  this.synth.asNodeID.debug("... for node ID") ;
 			       nil} )
 	}
@@ -144,8 +176,12 @@ softPlay{ arg tcDuration;
               this.play;
 		                                                 // queried by lane & chooser
 		      (tcDuration > this.basicDuration).if{
-			t.sched( tcDuration + (this.duration/100),   {this.synth.set(\loop, 0)})}
-	}
+			t.sched( tcDuration + (this.duration/100),
+				{this.synth.set(\loop, 0); t.clear
+		     }
+		)
+		}
+	 }
 
 pause {
 			this .synth.run(false) }

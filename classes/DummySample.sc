@@ -8,6 +8,8 @@ DummySample{
 	    var  <>  loop;
 	    var <> smartDuration = 0;
 
+cleanUp{}
+
 //====== QUERYING ===========
 hasLoop {	   "DummySample".postln;     ^false}
 

@@ -13,18 +13,54 @@ Xhooser {
 	   // but could record an event stream - instance of non det command pattern?
 	   // approx 1000 LOC total
 	var <> group;  // COPY - should be new
+	var <> chosenSynthsHaveBeenFreed = false;
 
 // =====  INITIALIZATION	 =======
+
 init{
 	lanes = List.new;
 		chosenLanes = List.new;
 		journal = List.new;
 		hasParent = false;
 		name ="Unnamed Chooser";
-
 	}
 
 *new { ^ super.new.init}
+
+cleanUp {
+		this.cleanUpClocks;
+		this.cleanUpLanes;
+		this.cleanUpTimeChooser;
+		this.cleanUpRest
+	}
+
+cleanUpClocks {
+		this.myclocks.do { arg eachClock, i;    eachClock.isNil.not.if{ eachClock.stop}};
+		this.myclocks_( nil)
+	}
+
+cleanUpLanes {
+		this.chosenLanes.do { arg each ;  each.isNil.not.if{ each.cleanUp }} ;
+		this.chosenLanes_(nil);
+		this.lanes.do { arg each ;  each.isNil.not.if{ each.cleanUp }} ;
+		this.lanes_(nil)
+	}
+
+cleanUpTimeChooser {
+		this.timeChooser.isNil.not.if{ this.timeChooser.cleanUp;                         this.timeChooser_(nil)}
+	}
+
+cleanUpRest {
+		this.noseCone_ (nil);
+		this.journal_(nil);
+		this.name.isString.if{this.name_(this.name + "cleaned")};
+		this.hasParent_(nil);
+		this.outBus_(nil);
+		this.group_(nil);
+	}
+
+
+
 
 kopy{ var me, nuLanes;
 		  /// used in loopablesequecne
@@ -41,7 +77,8 @@ kopy{ var me, nuLanes;
 		//each play will create a new node ID and a  create & stire new synth
 		//the two samples will save synths spereately
 		// and so handle swithcing on and off propely (play & free)
-		 me = this.copy;
+		me = this.copy;
+		this.timeChooser_(this.timeChooser.kopy);
 		nuLanes = (this.lanes.collect{ arg eachLane ; eachLane.kopy}).asList;
 		me.lanes_(nuLanes);
 		//loopsSeq needs to set new group here.
@@ -58,51 +95,9 @@ myGroup{ arg g;
 	}
 
 
-/*
-	// Royally screws up clapping and loopable seqnecne
-copy {
-	var me;
-	me = Xhooser.new;
-		me.noseCone_(this.noseCone);
-				me.lanes_(this.lanes.copy); //deepcopy?
-				me.chosenLanes_(this.chosenLanes.copy); //deepcopy?
-				me.timeChooser_(this.timeChooser.copy); // copy
-				me.journal_(this.journal.copy);
-		         me.hasParent_(this.hasParent.copy);
-				me.name_(this.name);
-		^ me
-       // define copy for lanes & sample & time chooser -  all needed for loopableSequence
-	}
-*/
-
-	/*
-lanesWithCleanSamples	{
-		^ (this.lanes.collect { arg eachLane, i;  eachLane.copy}).asList
-	        }
-
-cleanSamples {
-		    this.lanes.clear;
-		    this.lanesWithCleanSamples.do{ arg each; this.lanes.add(each)}
-	        }
-
-*/
-
-
-
 
 cleanAllSamples { arg n;
 		this.lanes.do { arg eachLane, i;  eachLane.clean;  eachLane.bugFix(n)}
-	}
-
-
-bakeNest {
-		//look for any nested choosers
-		// if poss work out how many choosers to have in loopable sequence
-		// create the sequence and make sure each &&  instacne of sample &&
-		// is only asked to hols one synth
-		// NB its eay and ok to v=cerat insatcnes of synths from a sungle sample
-		// but we need to  keep track of the node IDS and turning them off & On
-		// so maybe we can do that onl the fly in nsequecne in theloopabel seqiecne
 	}
 
 // ====== LANE ADDING & REMOVAL  =========
@@ -145,10 +140,13 @@ hasTooManyPriorityBoarders{
 
 hasTimeChooser{
 		// this.timeChooser.debug("time chooser");
+		//(this.timeChooser==nil).if{ "timechooser is nil".postln};
 		^(this.timeChooser==nil).not
 	}
 
 hasActiveTimeChooser{
+		//this.hasTimeChooser.if { "has timechooser".postln};
+          //this.timeChooser.isActive.if { "timechooser is active".postln};
 		^ this.hasTimeChooser.and( {this.timeChooser.isActive});
 		}
 
@@ -312,7 +310,7 @@ choose{
 
 // =========== PLAYABLE TIME LANES  ========================
 	chosenTimeLaneIsFullyPlayable {
-		this.hasActiveTimeChooser.not.if { "No active time chooser".postln; ^false};
+		this.hasActiveTimeChooser.not.if { "No active time chooser!".postln; ^false};
 		^ this.timeChooser.chosenLaneIsFullyPlayable
 	}
 
@@ -370,8 +368,13 @@ kill {this.stop  } //to give uniform nesting protovol in wrapper for nester Loop
 	}
 
 
-free { this.allChosenSynths.free;
-		this.allChosenSamples.do { arg each; each.free } } // Fixed clap2 !!!!
+	free {
+		      //this.chosenSynthsHaveBeenFreed.not.if { this.allChosenSynths.free};
+
+		  this.chosenSynthsHaveBeenFreed.not.if {
+			this.allChosenSamples.do { arg each; each.free } };
+		   this.chosenSynthsHaveBeenFreed_(true);
+	} // Fixed clap2 !!!!
 
 
 //========= DURATION =========

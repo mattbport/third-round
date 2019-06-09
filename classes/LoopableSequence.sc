@@ -12,12 +12,19 @@ LoopableSequence{   // or sequencer better name? NO
 	var <> loopMax;    // used as a cap to loopTimes
 	var<> duration;       // could be basic duration  - but once chosen....
 	var<> name;
+	var<> parentName;
 	var <> hasParent ; // not used
 	var <> outBus;
 	var  <> currentChooser;
 	var <> smartDuration ; // needed for nesting
-	var <> group; // COpy would need frosh ones
+	var <> group; // SIngle gtoup for this  loopSeq - easy way to kill future synths (if exist)
 	var<> siblingGroup;
+	var <> debugMode = false;
+	var <> debugMode2 = false;
+	var <> synthsHaveBeenFreed = false;
+
+
+
 
 
 	/// we really need to  be clear about & distinguish
@@ -55,9 +62,9 @@ init{ choosers = List.new;
 		// WAIT - DONT WE HAVE TO WRAP EACH???? NO!
 		var me, hygene;
 		  //this.debug("BetterKOPY  is called!!!!!!");
-	      me = this.copy;
+	      me = this.copy; // what does this do to gtoup? prob keeps the ref
 		  hygene = List.new;
-		  me.choosers.do {arg each; hygene .add(each.kopy)};
+		  me.choosers.do {arg each; hygene.add(each.kopy)};
 		  me.choosers_(hygene);
 		  // NB I HAVE THE SAME GROUP FROM POV of unneeded concrete tail end iterations to kill
 		// but from pov of "I am a different sample  instance who may need repeats" - no!!!!
@@ -66,33 +73,48 @@ init{ choosers = List.new;
 		// me.clocks(List.new);
 		^me
 	}
+// CLEAN UP
+	// Clocks, objects nodes
+	// looks like Kopy shares lookseq group & clocks
 
-
-
-   kopyOLD { // this is highly suspect but nneded if I am doiubly nested
-		// OK so who actually uses me???? kopy m ight be better for finability...
-		// AH!!! users are people who thing they are kopying a chooser
-		// -ah - me in nsequecne in this clas......
-		// so this should be Kopy
-
-
-	var me;
-			this.debug("COPY  is called!!!!!!");
-	me = LoopableSequence.new;
-
-		me.choosers(this.choosers.kopy); // who sets my group & clocks?
-		me.clocks(this.clocks.deepCopy); //deepcopy?
-		me.singleClock(this.singleClock.copy); //deepcopy?
-		me.timeline(this.timeline.deepCopy); //deepcopy?
-		me.loop(this.loop);
-		// group will be new - which is what we want
-		me.loopTimes(this.loopTimes);
-		me.loopMax (this.loopMax);
-		me.duration (this.duration);
-		me.name (this.name);
-		^ me
-       // define copy for lanes & sample & time chooser -  all needed for loopableSequence
+cleanUp {
+		this.cleanUpClocks;
+		this.cleanUpChoosers;
+		this.cleanUpCurrentChooser;
+		this.cleanUpRest
 	}
+
+cleanUpClocks {
+		this.clocks.do { arg eachClock, i;    eachClock.isNil.not.if{ eachClock.stop}};
+		this.clocks_( nil)
+	}
+
+cleanUpChoosers {
+		this.choosers.do { arg each ;  each.isNil.not.if{ each.cleanUp }} ;
+		this.choosers_(nil)
+	}
+
+cleanUpCurrentChooser {
+		this.currentChooser.isNil.not.if{ this.currentChooser.cleanUp; this.currentChooser_(nil)}
+	}
+
+cleanUpRest {
+		this.timeline_ (nil);
+		this.loop_(nil);
+		// this.loopTimes_(nil);
+		this.loopMax_(nil);
+		this.name.isString.if{this.name_(this.name + "cleaned")};
+		this.parentName.isString.if{parentName_(this.name + "cleaned")};
+		this.hasParent_(nil);
+		this.outBus_(nil);
+		this.duration_(nil);
+		this.smartDuration_(nil);
+		this.group_(nil);
+		this.siblingGroup_(nil);
+	}
+
+
+
 
 polyDurations{ // when diffetn choosers run at different tempos
 		this.cleanChoosers;
@@ -139,7 +161,7 @@ explore	{
 
 
 printOn { | aStream |
-		aStream << "a " << this.class.name << "  " <<  this.name;
+		aStream << "a " << this.class.name << "  name  " <<  this.name;
 		^aStream}
 
 
@@ -170,7 +192,7 @@ allSequencedSynths{
 
 schedule{arg aPauseInBeats,  aChooser;
 		 var tClock;
-		tClock = TempoClock(SampleBank.tempo);
+		tClock = TempoClock(SampleBank.tempo);  // new instance - not the default
 		 clocks.add(tClock);
 		tClock.sched ( aPauseInBeats, {
 			this.currentChooser_(aChooser); // unused
@@ -178,40 +200,40 @@ schedule{arg aPauseInBeats,  aChooser;
 			 aChooser.name.debug("synths above woken by loopSequ clock");
 			              nil  });
 		   // was playchosenLanes
-		//aChooser.name.debug("Scheduling"+ aChooser.sample.name);
-		aChooser.name.debug("Scheduling")
+		this.debugMode2.if {aChooser.name.debug("Scheduling"+ aChooser.name)}
+//  aChooser.name.debug("Scheduling")
 // ***	     this.logEntry(aPauseInBeats, aChooser); // play prechosen, else choice not made till scheduled
 	}
 
 
 
-	//================== STOPPING==========
+	//================== STOPPING==========\
 
-	basicFree { this.allSequencedSynths.do{ arg eachSynth, i; eachSynth.free; };
-		                this.choosers.do { arg each; each.free};
-                       this.choosers.do { arg each; each.stop};
-		// this.debug("freeing choosers inside loopable sequence")
+/* killJustThisIterationOfLoop{ this.debug("KILL ALLOW REDO "); this.stop; this.stopRun; }
+// Note - the synths in both cases probbaly currently all have same  group */
 
-		}
-
-killNoReDo{  this.debug("KILL NO REDO"); this.stop ; this.stopRun; this.group.free; this.siblingGroup.free;  // How to allow both looping and killing of excess
-		//maybe clocks vs group..
-		            this.killNoReDoNestedChoosersHidingInLanesOfMyReplicatedChoosers}
-
-killJustThisIterationOfLoop{ this.debug("KILL ALLOW REDO "); this.stop; this.stopRun; }
-// Note - the synths in both cases probbaly currently all have same  group
-
-killAllowReDoNestedChoosersHidingInLanesOfMyReplicatedChoosers {
+/* killAllowReDoNestedChoosersHidingInLanesOfMyReplicatedChoosers {
 		this.choosers.do { arg each; each.allChosenSamples.do
 			{ arg each; each.killAllowReoDo}}  /// just going exactly 2 deep?
-	                                }
-killNoReDoNestedChoosersHidingInLanesOfMyReplicatedChoosers {
+	                                } */
+
+/* killNoReDoNestedChoosersHidingInLanesOfMyReplicatedChoosers {
 		this.choosers.do { arg each; each.allChosenSamples.do
 			{ arg each; each.killNoReDo}}  /// just going exactly 2 deep?
-	                                }
-killInnerGroup{ this.killNoReDoNestedChoosersHidingInLanesOfMyReplicatedChoosers;
+	                                } */
+
+/* killInnerGroup{ this.killNoReDoNestedChoosersHidingInLanesOfMyReplicatedChoosers;
 		this.debug("OK to KILL no redo inner group - its a diff group ID")
-	                   }
+	                   } */
+
+
+killNoReDo{  this.debug("KILL NO REDO"); this.siblingGroup.free; this.stop ; this.stopRun;
+		            // this.group.free;
+		           // REALLY??????? after proper cleanup????
+		          /// this.killNoReDoNestedChoosersHidingInLanesOfMyReplicatedChoosers;
+		this.name.debug("name of loopSeq");
+		//this.clear;
+	}
 
 
 killNestedChoosersHidingInLanesOfMyReplicatedChoosers {
@@ -226,15 +248,28 @@ kill { this.debug("kill"); /*this.stop; */this.stopRun; //this.group.free;
      // yeah - but which group & when?
 		// outer vs inner? - shoyld work automatically?
 
-	stopRun {this.allSequencedSynths.do { arg eachSynth, i;
+free { this.basicFree}
+
+
+basicFree {      this.synthsHaveBeenFreed.not.if {
+
+		               this.allSequencedSynths.do{ arg eachSynth, i; eachSynth.free; };
+		                this.choosers.do { arg each; each.free};
+                      //  this.choosers.do { arg each; each.stop};
+		               this.synthsHaveBeenFreed_(true);
+	              };
+		// this.debug("freeing choosers inside loopable sequence")
+
+		}
+
+stopRun {this.allSequencedSynths.do { arg eachSynth, i;
 		               (eachSynth == nil).not.if
 		{eachSynth.debug("stoprun all sequenced synths"); eachSynth.run(false)}};
 		("stopped any CURRENTLY running synths in loopseq" + this.name).postln;
 	}
 
-	free { this.basicFree}
 
-	stop { this.clocks.do{ arg eachClock, i; eachClock.stop};
+stop { this.clocks.do{ arg eachClock, i; eachClock.stop};
 		("stopped any future scheduled choosers  in loopseq clock collection" + this.name).postln;
 		}
 
@@ -244,21 +279,12 @@ kill { this.debug("kill"); /*this.stop; */this.stopRun; //this.group.free;
 
 
 
-	/*
-	kill{ this.free; this.stop; this.clear ; "loopable sequence just got killed".postln;
-		   this.basicFree
-		// but what if this goes all the way down t oanother level of nesting?
-	}
-	*/
-
 	deepKill {
 
 		this.choosers.do	{ arg each; each.deepKill};
 		"loopable sequence just got DEEP killed".postln;
 		"loopable sequence just got DEEP killed".postln;
 		 this.kill
-
-
 	}
 
 
@@ -284,7 +310,7 @@ hasNoLoop {
 //and wrapper renames normal plays as basic play
 
 nSequences { arg n;
-		//WHAT DOES THOS DO IF TEHSE ARE LOOP SEQ?
+		//NB THESE CONTAIN  LOOP SEQ IN DOUBle NEST
 		// cant be!!!! can only hold one (at present)
 		var current, deep,  sibGroup;
 		sibGroup = Group.new;
@@ -295,7 +321,11 @@ nSequences { arg n;
 		 deep = current.collect {arg each; each.kopy} ;
 		 deep .do { arg each, i;
 			each.name_("Chooser"+i.asString);
-			each.myGroup(sibGroup);
+			each.myGroup(sibGroup);  /// ** Passes via chooser to lane to sample to synth
+			                                           /// or via choopser to lane to xhooserwrapper
+			                                           /// CAnnot be wrapper at present- is always chooser!!!!
+			                                            /// to nest raw seqeucnews
+			                                            //would need to implement myGroup in xhoooser wrapper
 			// each.cleanAllSamples(i); synth vs synthdef - cofuxed
 			each.choose; /*each.debug("chosenlanes") */ };
 		choosers = deep;
@@ -384,9 +414,10 @@ basicPlayChosenAt{
 					                 // nextStartTime.debug("next item start time ");
 			                         // eachChooser.debug("this chooser");
 			                         //eachChooser.duration.debug(" next item duration");
-			                       nextStartTime.debug("next start time" +
-				"next duration" + eachChooser.duration.asString);
-			                        nextStartTime + eachChooser.duration;
+			 this.debugMode.if{
+			 nextStartTime.debug(
+					"next duration" + eachChooser.duration.asString +"next start time");};
+				nextStartTime + eachChooser.duration;
 
 		} ) }
 	    // play returning duration of sequence is needed  for sequence with repeats to work sensibly
