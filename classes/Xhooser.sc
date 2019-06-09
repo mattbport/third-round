@@ -78,7 +78,7 @@ kopy{ var me, nuLanes;
 		//the two samples will save synths spereately
 		// and so handle swithcing on and off propely (play & free)
 		me = this.copy;
-		this.timeChooser_(this.timeChooser.kopy);
+		// this.timeChooser_(this.timeChooser.kopy);
 		nuLanes = (this.lanes.collect{ arg eachLane ; eachLane.kopy}).asList;
 		me.lanes_(nuLanes);
 		//loopsSeq needs to set new group here.
