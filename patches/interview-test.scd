@@ -193,14 +193,10 @@ SampleBank.tempo_(61/60);
 ~piano1.timeChooser_(~pianotime1);
 
 ~piano2 = Xhooser.new;
-~piano2.name_("piano");
+~piano2.name_("piano2");
 ~piano2.noseCone_(2);
 ~piano2.addLane(Lane.new.nest(~lefthand).loopOn.hardStopOn.weight_(1));
 ~piano2.addLane(Lane.new.nest(~righthand).loopOn.hardStopOn.weight_(1));
-// ~pianotime = TimeChooser.new;
-// ~pianotime.noseCone_(1);
-// ~pianotime.addLane(TimeLane.new.beats_(4*128));
-// ~piano.timeChooser_(~pianotime);
 
 ~violin = Xhooser.new;
 ~violin.name_("violin");
