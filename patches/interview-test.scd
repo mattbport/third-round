@@ -285,10 +285,10 @@ SampleBank.tempo_(61/60);
 ~parent1.noseCone_(1);
 ~parent1.addLane(Lane.new.nest(~piano).loopOn.hardStopOn.weight_(1));
 ~parent1.addLane(Lane.new.nest(~violin).loopOn.hardStopOn.weight_(1));
-~p1time= TimeChooser.new;
+~p1time = TimeChooser.new;
 ~p1time.noseCone_(1);
 ~p1time.addLane(TimeLane.new.beats_(16));
-~p1time.timeChooser_(~parent1);  // <----seems to fail here
+~parent1.timeChooser_(~p1time);  // <----seems to fail here
 
 ~parent2 = Xhooser.new;
 ~parent2.name_("pianostrings1");
