@@ -157,6 +157,156 @@ SampleBank.tempo_(61/60);
 
 
 
+/////////////// TEST 1
+// Fails with Message 'myGroup' not understood
+// An attempt to add a sequence for the piano nested in the parent Chooser
+(
+
+~lefthand = Xhooser.new;
+~lefthand.name_("lefthand");
+~lefthand.noseCone_(1);
+~lefthand.addLane(Lane.new.namedSample(\lefthand).loopOff.hardStopOn.weight_(3));
+~lefthand.addLane(Lane.new.namedSample(\lefthand2).loopOff.hardStopOn.weight_(1));
+~lefttime = TimeChooser.new;
+~lefttime.noseCone_(1);
+~lefttime.addLane(TimeLane.new.beats_(3)); // sample is 3 beats long
+~lefthand.timeChooser_(~lefttime);
+
+~righthand = Xhooser.new;
+~righthand.name_("righthand");
+~righthand.noseCone_(1);
+~righthand.addLane(Lane.new.namedSample(\righthand).loopOff.hardStopOn.weight_(2));
+~righthand.addLane(Lane.new.namedSample(\righthand2).loopOff.hardStopOn.weight_(1));
+~righttime = TimeChooser.new;
+~righttime.noseCone_(1);
+~righttime.addLane(TimeLane.new.beats_(4)); // sample is 4 beats long, 3.5 is interesting
+~righthand.timeChooser_(~righttime);
+
+~piano1 = Xhooser.new;
+~piano1.name_("piano");
+~piano1.noseCone_(inf);
+~piano1.addLane(Lane.new.nest(~lefthand).loopOn.hardStopOn.weight_(0));
+~piano1.addLane(Lane.new.nest(~righthand).loopOn.hardStopOn.weight_(1));
+~pianotime1 = TimeChooser.new;
+~pianotime1.noseCone_(1);
+~pianotime1.addLane(TimeLane.new.beats_(4*16));
+~piano1.timeChooser_(~pianotime1);
+
+~piano2 = Xhooser.new;
+~piano2.name_("piano");
+~piano2.noseCone_(2);
+~piano2.addLane(Lane.new.nest(~lefthand).loopOn.hardStopOn.weight_(1));
+~piano2.addLane(Lane.new.nest(~righthand).loopOn.hardStopOn.weight_(1));
+// ~pianotime = TimeChooser.new;
+// ~pianotime.noseCone_(1);
+// ~pianotime.addLane(TimeLane.new.beats_(4*128));
+// ~piano.timeChooser_(~pianotime);
+
+~violin = Xhooser.new;
+~violin.name_("violin");
+~violin.noseCone_(1);
+~violin.addLane(Lane.new.namedSample(\violin1).loopOff.hardStopOn.weight_(1));
+~violin.addLane(Lane.new.namedSample(\violin2).loopOff.hardStopOn.weight_(1));
+~violin.addLane(Lane.new.namedSample(\violinsilence).loopOff.hardStopOn.weight_(2));
+~violintime= TimeChooser.new;
+~violintime.noseCone_(1);
+~violintime.addLane(TimeLane.new.beats_(8)); // sample is 2 bars long = 8. 10 works nicely
+~violin.timeChooser_(~violintime);
+)
+
+(
+~piano = LoopableSequence.new;
+~piano.add (~piano1);
+~piano.add (~piano2);
+)
+
+(
+~parent = Xhooser.new;
+~parent.name_("pianostrings");
+~parent.noseCone_(inf);
+~parent.addLane(Lane.new.nest(~piano).loopOn.hardStopOn.weight_(1));
+~parent.addLane(Lane.new.nest(~violin).loopOn.hardStopOn.weight_(1));
+)
+
+~parent.play;
+
+
+//////////////// TEST 2
+// Top level sequence
+// Fail; can a Time Chooser control a parent which is nesting two Choosers?
+Server.killAll;
+s.boot;
+s.freeAll;
+SampleBank.populate;
+SampleBank.warmUp;
+SampleBank.tempo_(61/60);
+
+(
+
+~lefthand = Xhooser.new;
+~lefthand.name_("lefthand");
+~lefthand.noseCone_(1);
+~lefthand.addLane(Lane.new.namedSample(\lefthand).loopOff.hardStopOn.weight_(3));
+~lefthand.addLane(Lane.new.namedSample(\lefthand2).loopOff.hardStopOn.weight_(1));
+~lefttime = TimeChooser.new;
+~lefttime.noseCone_(1);
+~lefttime.addLane(TimeLane.new.beats_(3)); // sample is 3 beats long
+~lefthand.timeChooser_(~lefttime);
+
+~righthand = Xhooser.new;
+~righthand.name_("righthand");
+~righthand.noseCone_(1);
+~righthand.addLane(Lane.new.namedSample(\righthand).loopOff.hardStopOn.weight_(2));
+~righthand.addLane(Lane.new.namedSample(\righthand2).loopOff.hardStopOn.weight_(1));
+~righttime = TimeChooser.new;
+~righttime.noseCone_(1);
+~righttime.addLane(TimeLane.new.beats_(4)); // sample is 4 beats long, 3.5 is interesting
+~righthand.timeChooser_(~righttime);
+
+~piano = Xhooser.new;
+~piano.name_("piano");
+~piano.noseCone_(2);
+~piano.addLane(Lane.new.nest(~lefthand).loopOn.hardStopOn.weight_(1));
+~piano.addLane(Lane.new.nest(~righthand).loopOn.hardStopOn.weight_(1));
+// ~pianotime = TimeChooser.new;
+// ~pianotime.noseCone_(1);
+// ~pianotime.addLane(TimeLane.new.beats_(4*128));
+// ~piano.timeChooser_(~pianotime);
+
+~violin = Xhooser.new;
+~violin.name_("violin");
+~violin.noseCone_(1);
+~violin.addLane(Lane.new.namedSample(\violin1).loopOff.hardStopOn.weight_(1));
+~violin.addLane(Lane.new.namedSample(\violin2).loopOff.hardStopOn.weight_(1));
+~violin.addLane(Lane.new.namedSample(\violinsilence).loopOff.hardStopOn.weight_(2));
+~violintime= TimeChooser.new;
+~violintime.noseCone_(1);
+~violintime.addLane(TimeLane.new.beats_(8)); // sample is 2 bars long = 8. 10 works nicely
+~violin.timeChooser_(~violintime);
+
+~parent1 = Xhooser.new;
+~parent1.name_("pianostrings");
+~parent1.noseCone_(1);
+~parent1.addLane(Lane.new.nest(~piano).loopOn.hardStopOn.weight_(1));
+~parent1.addLane(Lane.new.nest(~violin).loopOn.hardStopOn.weight_(1));
+~p1time= TimeChooser.new;
+~p1time.noseCone_(1);
+~p1time.addLane(TimeLane.new.beats_(16));
+~p1time.timeChooser_(~parent1);  // <----seems to fail here
+
+~parent2 = Xhooser.new;
+~parent2.name_("pianostrings1");
+~parent2.noseCone_(inf);
+~parent2.addLane(Lane.new.nest(~piano).loopOn.hardStopOn.weight_(1));
+~parent2.addLane(Lane.new.nest(~violin).loopOn.hardStopOn.weight_(1));
+
+
+~parent = LoopableSequence.new;
+~parent.add (~parent1);
+~parent.add (~parent2);
+
+~parent.play;
+)
 
 
 
