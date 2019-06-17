@@ -15,22 +15,27 @@ XhooserWrapper // Decorator (I think)
 	    var <>atomicRepeats; // one more nesting of loopableSequ
 	    var  <>loop;
 	    var <> smartDuration = 0;   // gets set for me by lane
-	    var  <> loopableSequence;
+	    var  <> loopableSequence; //
 	    var <>parentName;
 	    var <> siblingGroup;
-	    var<>  group; /// when this is doube lesetd it ends as holding siblinbg group!!!
-	    // var <> chooser; // some redundncy? always in loopable? but convenient - now a method
+	    var<>  group; /// when this is doube nested it ends as holding sibling group!!!
+	        // but iff triply nested not passed on to enclosed loopSEQ
+	    // var <> chooser; // now a method
 	    var <> clocks;
 	     var <> outerClocks;
 	     var <>outbus ; // just for protocol compliance with sample
 
 // aha- you can only put synths in groups - not choosers......
 
+	noActiveTimeLane{} // just to support trimSample expanded protocol from Lane
 
 	kopy { var me;
+		    // NEW GROUP FOR EVERY COPY - do we need this??? LOT OF groups
+		  //  ALSO AT INIT
+		   // But neither is thecase for siblinggroup
 		      me = this.copy;
 		     // will have same sibling group & both  clocks =- except not yet set at timeof Kopy
-		      me.group_(Group.new);  // IS THAT RIGHT?????
+		     //*** me.group_(Group.new);  // IS THAT RIGHT?????
 		// me.parentName_("kopy wrapper - who is parent?");
 		this.loopableSequence_(this.loopableSequence.kopy);
 		//this.clocks = List.new;
@@ -40,6 +45,7 @@ XhooserWrapper // Decorator (I think)
 	}
 
 cleanUp {
+		this.loopableSequence.cleanUp;
 		this.cleanUpClocks;
 		this.cleanUpOuterClocks;
 		this.cleanUpRest;
@@ -95,8 +101,8 @@ hasNoLoop {
 			^ me.init}
 
 init {  loopableSequence = LoopableSequence.new;
-		  this.group_(Group.new);
-		  loopableSequence.group_(this.group);
+		  //*** this.group_(Group.new);
+		  //*** loopableSequence.group_(this.group);
 		loopableSequence.siblingGroup(this.siblingGroup);
 		  clocks = List.new;
 		  outerClocks = List.new;

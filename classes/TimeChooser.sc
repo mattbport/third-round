@@ -35,20 +35,15 @@ cleanUpRest {
 
 //======= Printing  ==========
 
-copy {
-	var me;
-	    me = TimeChooser.new;
-		me.noseCone_(this.noseCone);
-				me.lanes_(this.lanes.deepCopy); //deepcopy?
-				me.chosenLane_(this.chosenLane.deepCopy); //deepcopy?
-		        me.chooseLane;
-				me.name_(this.name);
-		^ me
-	}
 
-	kopy{
-		^ this.copy
-	}
+kopy{ var me, nuLanes;
+		me = this.copy;
+		nuLanes = (this.lanes.collect{ arg eachLane ; eachLane.isNil.not.if {eachLane.kopy}}).asList;
+		me.lanes_(nuLanes);
+		^ me }
+
+
+
 
 
 	printOn { | aStream |
@@ -117,6 +112,7 @@ chooseWinnerFromFiniteNonZeroWeightedLanes{
 		 var pool = List.new;
 		 var poolWeights = List.new;
 		  var normalizedWeights;
+		// this.debug("time chooser in chooseWinnerFromFiniteNonZeroWeightedLanes");
 		  this.finiteNonZeroWeightedLanes.do(
 			       { arg eachLane;
 				     pool.add(eachLane);

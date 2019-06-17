@@ -143,13 +143,7 @@ createSynthDef {
 
 
 
-
-
-setSampleLoopTo{arg aNum;
-		synth.set(\loop, aNum)}
-
-
-setSampleParameters{ // call to super from TimSample 3
+setSampleParameters{
 		 synth.set(\loop, this.loopStatus);
 		 synth.set(\outputBus, this.outBus);
 		// this.outBus.debug("In sample");
@@ -161,9 +155,7 @@ setSampleParameters{ // call to super from TimSample 3
 play {   this.group.isNil.if(  /// if its not nill then place it in server  like this
 		          {synth = Synth(this.name)},   // creates & stores a synth instnce
 			      {synth = Synth.after(this.group,  this.name) });
-           this.setSampleLoopTo(this.loopStatus);
-		   synth.set(\outputBus, this.outBus);
-		// this.outBus.debug("In sample");
+           // this.setSampleParameters;
 	this.name.debug("CREATE synth" +  "node ID" + synth.asNodeID.asString + "with parent" + this.parentName);
 		     }
 	                                                               //starts playing as soon as created

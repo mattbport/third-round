@@ -65,22 +65,30 @@ cleanUpRest {
 kopy{ var me, nuLanes;
 		  /// used in loopablesequecne
 		// we just want fresh lanes to get us fresh sample insatcnes
-		// to avoid sinadvertent ample instacne reuse
+		// to avoid sinadvertent sample instance reuse
 		// and wrong node getting killed
 		// got to be kopy or will be infinite loop
 		// make a copy of me
-		//copy my lanes separaelt using bog standard copy
-		// so its kinds semi deep copy
+		//copy my lanes separately using bog standard copy
+		// so its kind of  semi deep copy
 		// copies will share the samples
-		// butsamp[les havent been played yet.
-		// so have no synths stsoted in synth instacne variable
+		// but samples will get freshly played in new copy
+		// so have no synths shared in synth instance variable
 		//each play will create a new node ID and a  create & stire new synth
 		//the two samples will save synths spereately
 		// and so handle swithcing on and off propely (play & free)
 		me = this.copy;
-		// this.timeChooser_(this.timeChooser.kopy);
+
+		// this.lanes.do { arg each; each.debug(" A lane")};
+
 		nuLanes = (this.lanes.collect{ arg eachLane ; eachLane.kopy}).asList;
 		me.lanes_(nuLanes);
+
+		       //this.timeChooser.debug ("original");
+		       this.timeChooser.isNil.not.if
+	            	{me.timeChooser_(this.timeChooser.kopy)}; //FIX ME!!!!
+		       //me.timeChooser.debug ("kopy");
+
 		//loopsSeq needs to set new group here.
 		// what about when a loopabel sequ is the thing in the loopable seq??
 		// LAnes are not chosen yet  in loopable seq when this is coped
@@ -310,7 +318,7 @@ choose{
 
 // =========== PLAYABLE TIME LANES  ========================
 	chosenTimeLaneIsFullyPlayable {
-		this.hasActiveTimeChooser.not.if { "No active time chooser!".postln; ^false};
+		this.hasActiveTimeChooser.not.if { /*this.debug("No active time chooser!"); */^false};
 		^ this.timeChooser.chosenLaneIsFullyPlayable
 	}
 
@@ -331,8 +339,9 @@ playChosen{
 playChosenLanes{  // doesn't choose fresh Lanes -  sticks with last choices
 		                        this.integrityCheck; // dont think has opportunity to do anything
 		          		       this.hasActiveTimeChooser.if (
-		                         	{      this.journal.add( \hasActiveTimeChooser -> this.timeChooser);
+		                         	{   /*this.journal.add( \hasActiveTimeChooser -> this.timeChooser);
 				                            this.journal.add( \activeTimeLane -> this.chosenTimeLane);
+			                        	*/
 				                           this.chosenLanes.do {|eachLane |
 				                            eachLane.playWithChosenTimeLaneForParent(this.chosenTimeLane, this)}},
 				                             {this.chosenLanes.do  { |eachLane | eachLane.play }     }  )
@@ -342,14 +351,16 @@ playChosenLanes{  // doesn't choose fresh Lanes -  sticks with last choices
 play {                 //  PRINCIPLE: multiple hits of plain play always produce new choices
 		                  // journals previous choices,
 			this.chooseLanes;                         // empties out previous choices
-		    this.journal.add( \chosenLanes -> this.chosenLanes.asArray);
+		  //   this.journal.add( \chosenLanes -> this.chosenLanes.asArray);
 		  //   this.outBus.debug("In Chooser"); // stereo
 		    this.name.debug("In Chooser"); // stereo
+
 		    this.outBus.isNil.not.if {
-			this.chosenLanes.debug("Hit chosen Lanes");
-			this.chosenLanes.do
-			{arg eachLane; eachLane.outBus_(this.outBus)}}; // stereo
-		    this.playChosenLanes                  // may be interesting if we go nested
+			        this.chosenLanes.debug("Hit chosen Lanes");
+			        this.chosenLanes.do
+			         {arg eachLane; eachLane.outBus_(this.outBus)}};
+		              // stereo   // may be interesting if we go nested
+		    this.playChosenLanes
 	}
 
 
@@ -415,6 +426,8 @@ maxLaneDuration{
 		durations = chosenLanes.collect{ arg eachLane, i;  //eachLane.debug("max laneduration");
 			//eachLane.sample.name.debug("lane name in MAX");
 			//eachLane.smartDuration.debug(" lane smartduration in MAX");
+			//eachLane.debug(" eachlane debug");
+			//eachLane.smartDuration.debug("eachLane smartDuration" );
 			eachLane.smartDuration};
 			//durations.debug("SMART DURATIONS OF EACH LANE GIVEN TO FIND MAX")
 		max = durations.maxItem{arg item, i; item};

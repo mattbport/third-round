@@ -28,6 +28,26 @@ cleanUpRest {
 	}
 
 
+kopy{ var me;
+		  /// used in loopablesequecne
+		// we just want fresh lanes to get us fresh sample insatcnes
+		// to avoid sinadvertent ample instacne reuse
+		// and wrong node getting killed
+		// got to be kopy or will be infinite loop
+		// make a copy of me
+		//copy my lanes separaelt using bog standard copy
+		// so its kinds semi deep copy
+		// copies will share the samples
+		// butsamp[les havent been played yet.
+		// so have no synths stsoted in synth instacne variable
+		//each play will create a new node ID and a  create & stire new synth
+		//the two samples will save synths spereately
+		// and so handle swithcing on and off propely (play & free)
+		me = this.copy;
+		this.hasSample.if{ me.sample_(this.sample.kopy)};
+		// but what if sample is a wrapper???? SO why does KOPY screw up?
+		^ me }
+
 
 
 init{

@@ -57,6 +57,14 @@ init{ choosers = List.new;
 	}
 
 
+myGroup{ arg g;
+		// called by lo0pable sequecne
+		//ALternative would be to do nothing
+		   this.group_(g); // nasty pointless dangerous duplication memo
+		this.choosers.do{arg each; each.group(g)}
+		   // nb telling samples ie synth defs ie synths not created yet
+	}
+
 
 	kopy {
 		// WAIT - DONT WE HAVE TO WRAP EACH???? NO!
@@ -161,7 +169,7 @@ explore	{
 
 
 printOn { | aStream |
-		aStream << "a " << this.class.name << "  name  " <<  this.name;
+		aStream << "a loopSeq named —" <<  this.name << "—" ;
 		^aStream}
 
 
@@ -195,9 +203,11 @@ schedule{arg aPauseInBeats,  aChooser;
 		tClock = TempoClock(SampleBank.tempo);  // new instance - not the default
 		 clocks.add(tClock);
 		tClock.sched ( aPauseInBeats, {
-			this.currentChooser_(aChooser); // unused
+			//this.currentChooser_(aChooser); // unused
+			aChooser.name.debug("Wake next repeat of nested item with new choices");
+			("      via clock in loopSequ named—" + this.name +" — with following synth(s)").postln;
 			aChooser.playChosen;
-			 aChooser.name.debug("synths above woken by loopSequ clock");
+
 			              nil  });
 		   // was playchosenLanes
 		this.debugMode2.if {aChooser.name.debug("Scheduling"+ aChooser.name)}
@@ -227,7 +237,8 @@ schedule{arg aPauseInBeats,  aChooser;
 	                   } */
 
 
-killNoReDo{  this.debug("KILL NO REDO"); this.siblingGroup.free; this.stop ; this.stopRun;
+	killNoReDo{  this.debug("KILL NO REDO");  this.stop ; this.stopRun;
+		"Freeing SIBLING Group".postln; this.siblingGroup.free;
 		            // this.group.free;
 		           // REALLY??????? after proper cleanup????
 		          /// this.killNoReDoNestedChoosersHidingInLanesOfMyReplicatedChoosers;
@@ -262,15 +273,18 @@ basicFree {      this.synthsHaveBeenFreed.not.if {
 
 		}
 
-stopRun {this.allSequencedSynths.do { arg eachSynth, i;
+stopRun { ("Stop any CURRENTLY running synths in loopseq named —" + this.name).postln;
+		this.allSequencedSynths.do { arg eachSynth, i;
 		               (eachSynth == nil).not.if
-		{eachSynth.debug("stoprun all sequenced synths"); eachSynth.run(false)}};
-		("stopped any CURRENTLY running synths in loopseq" + this.name).postln;
+		{eachSynth.debug("  stoprun all sequenced synths"); eachSynth.run(false)}};
+
 	}
 
 
 stop { this.clocks.do{ arg eachClock, i; eachClock.stop};
-		("stopped any future scheduled choosers  in loopseq clock collection" + this.name).postln;
+		("Stopped any FUTURE scheduled choosers by STOPPING —"
+			+ this.clocks.size.asString +  " — TempoClocks"). postln;
+			("     for loopseq named —" + this.name + "—").postln;
 		}
 
 
@@ -312,6 +326,7 @@ hasNoLoop {
 nSequences { arg n;
 		//NB THESE CONTAIN  LOOP SEQ IN DOUBle NEST
 		// cant be!!!! can only hold one (at present)
+		// looks like would work for artisinal sequecne
 		var current, deep,  sibGroup;
 		sibGroup = Group.new;
 		this.siblingGroup_(sibGroup);
@@ -322,8 +337,8 @@ nSequences { arg n;
 		 deep .do { arg each, i;
 			each.name_("Chooser"+i.asString);
 			each.myGroup(sibGroup);  /// ** Passes via chooser to lane to sample to synth
-			                                           /// or via choopser to lane to xhooserwrapper
-			                                           /// CAnnot be wrapper at present- is always chooser!!!!
+			                                           /// or via chooser to lane to xhooserwrapper
+			                                  /// Cannot be wrapper at present- is always chooser!!!!
 			                                            /// to nest raw seqeucnews
 			                                            //would need to implement myGroup in xhoooser wrapper
 			// each.cleanAllSamples(i); synth vs synthdef - cofuxed
@@ -373,9 +388,12 @@ choose {   var sequenceDuration =0 ;
 		//  HAS MAJOR OVERHEAD IF DOUBLY NESTED!!!!
 		//"=========================".postln;
 		   this.cleanChoosers;
-           this.choose;
+           this.choose; // may just  contain single chooser at this stage
+		                       // but could already be  an artisinal sequecne
 	     // needed for fresh play, sequencing info & recursion
-           ^ this.playChosen }
+           ^ this.playChosen  // this is where a single clones if loop is on
+                                       // but could it work for artisinal sequecne?
+	}
 
 	cleanChoosers {
 		this.choosers.removeAllSuchThat { arg eachItem;  eachItem.isNil  } }

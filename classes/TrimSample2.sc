@@ -1,4 +1,6 @@
-TrimSample : Sample {
+TrimSample2 : Sample {
+
+// EVIL _ CAReFUL
 
 var <> trimStartGridPoint = 0;
 var <> trimEndGridPoint = 16;
@@ -28,9 +30,9 @@ trimWidthAsFraction {^ this.trimWidthInGridPoints / this.grid}		// true
 sampleDurationInSecs { ^ this.sampleDurationInBeats * this.tempo}
 sampleDurationInBeats {  ^ this.buffer.duration*this.tempo}                              // OK
 trimDurationInBeats {  ^ this.trimWidthAsFraction* this.sampleDurationInBeats}
-trimDurationInSecs {^ this.trimDurationInBeats * this.tempo}
+trimDurationInSecs {^ this.trimDurationInBeats /this.tempo}
 anchorGridFraction { ^ this.anchorPoint / this.grid}
-
+framesInBuffer{^ this.buffer.numFrames}
 // fraction between 0 and 1 -  implemented as playBuf Trigger phase
 
 //conversion
@@ -40,48 +42,30 @@ gridToFrameNum{arg gridPoint;
 		^ this.buffer.numFrames* (gridPoint/this.grid)}
 
 
-// UGen stuff
-
-frequency { ^Impulse.kr(this.trimWidthInGridPoints*this.buffer.sampleRate)}
-
-	/*
-playHead {^ Phasor.ar( this.freq, 1,
-			this.gridToFrameNum(this.trimStart),
-			this.gridToFrameNum(this.trimEnd),
-			this.gridToFrameNum(this.anchorPoint))}
-	*/
-
-// THIS GETS COMPILED AND SENT TO SERVER WHEN WARMING UP!!!!!!!!!
-		                  // CANNT WORK THE WAY I CEUUENTLY CREATE SYNTH DEFS - ANd THEY Take TIME
-		                  // AHA! trim reruns creatSYnthDEf!!
+// does the trim but not the soft stop - done by hand
 createSynthDef {
-		    //this.debugDump ;
 			SynthDef(this.name ,
-			{ |loop=0, volume=0.5, outputBus=0 freq = 0 playHead =0|
-			freq = this.frequency;
-			playHead =Phasor.ar( freq, 1,
-			this.gridToFrameNum(this.trimStart),
-			this.gridToFrameNum(this.trimEnd),
-			this.gridToFrameNum(this.anchorPoint));
+		{
+			arg loop=0, volume=0.5, outputBus=0 , grid = this.grid, start = this.trimStart,
+				    end = this.trimEnd, anchor = this.anchorPoint, loopTimes =10000 ;
+			var trimTrigger = Phasor.ar(
+				                              	Impulse.kr(this.framesInBuffer*((end-start)/grid)*SampleRate.ir);
 			Out.ar(outputBus,
-				     BufRd.ar(    this.buffer.numChannels,
-					                    this.buffer.bufnum,
-					                     playHead,
-					                     0,
+						BufRd.ar( this.buffer.numChannels,              // stereo
+							           this.buffer.bufnum,
+					                   trimTrigger,
+					                   1,
+			                            end* (this.framesInBuffer/grid),
+			                            start*(this.framesInBuffer/grid),
+			                            this.framesInBuffer*Select.kr ( PulseCount(trimTrigger) <= loopTimes,
+							                                                                              [ anchor, grid]) ),
+					                     0,               // dont loop
 					                     2)              // interpolation - which would sound best?
-					*volume )
+					*volume );
 			}).add;
 		}
 
 
-// ============	====================
-
-// DOES NOT  WORK - server side magic with set
-
-setSampleLoopTo{arg aNum;
-		(aNum<1).if ({ // just been set to no loop - but set asynchronously
-                             // set impulse to zero?
-			synth.set(\freq, -1 ,\playHead, -1)})}
 
 
 
@@ -91,7 +75,7 @@ softPlay{ arg tcDuration; // sent as beats =  so convert to beats....
 		     (tcDuration <= this.basicDuration).if{this.loopOff;  this.setSampleLoopTo(0) };
               this.play;
 			  softPlayKillClock.sched( this.softDuration(tcDuration),
-				{ // this.setSampleLoopTo(0); // does nothing, sadly
+				{ this.setSampleLoopTo(0); // needed for no trim case
 				  this.synth.free; // frees the stored instance
 			      this.name.debug(" SOFT STOP client-side — node ID" + synth.asNodeID.asString);
 				   tcDuration.debug(                           "    tcDuration");
@@ -102,6 +86,8 @@ softPlay{ arg tcDuration; // sent as beats =  so convert to beats....
 
 
 clockSoftDuration {arg duration;
+
+	      synth.set(\loopTimes, this.neededRepeatsFor(duration));
 		^  this.sampleDurationInBeats * this.neededRepeatsFor(duration)}
 
 neededRepeatsFor{  arg softStopDuration;
@@ -128,10 +114,7 @@ duration{
 
 debugDump	 {
 this.sampleDurationInBeats.debug("sampleDurationInBeats");
-		this.frequency.debug("frequency");
-this.trimStart.debug("trim start");
-this.trimEnd.debug("trim end");
-this.anchorPoint.debug("anchor point");
+
 //this. playHead.debug("playhead");
 this. buffer.debug("buffer");
 this. frequency.debug("frequency");
@@ -140,20 +123,10 @@ this. buffer.numFrames.debug("buffer.numFrames");
 // this. triggerPhase.debug("triggerPhase");
 this. trimDurationInBeats.debug("trimDuration in beats");
 this. trimDurationInSecs.debug("trimDuration in secs");
-this.debug ("in Trimsample");
+this.debug ("in sample");
 
 	}
 
-//phase appears  useless for anchor — does something but not anchor
-// maybe have a stepped thing so initial start pos is diff from start
-
-/* adapt this to fix anchor!
-
-	{Select.kr(
-	    Stepper.kr( Impulse.kr(4), 0,0,10,1,0	),
-       	                            [10,11,12,13,14,15,16,17,18,19,20]
-	)}.plot(1,minval:0,maxval:21);
-	*/
 
 
 
