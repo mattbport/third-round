@@ -53,7 +53,7 @@ init{ choosers = List.new;
 		loop = true;
 		// group = Group.new;
 		loopTimes = 1;
-		loopMax = 32;  // was 16whoa - not getting changed - who sets this? - ah its loop times we want....
+		loopMax = 64;  // was 16whoa - not getting changed - who sets this? - ah its loop times we want....
 	}
 
 

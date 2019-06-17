@@ -70,7 +70,24 @@ SampleBank{
 		samples.add(\violin1 -> sampleClass.new(\violin1 ,"violin1"));
 		samples.add(\violin2 -> sampleClass.new(\violin2 ,"violin2"));
 		samples.add(\violinsilence -> sampleClass.new(\violinsilence ,"violinsilence"));
-
+		samples.add(\ep1 -> sampleClass.new(\ep1 ,"ep1"));
+		samples.add(\ep2 -> sampleClass.new(\ep2 ,"ep2"));
+		samples.add(\ep3 -> sampleClass.new(\ep3 ,"ep3"));
+		samples.add(\ep4 -> sampleClass.new(\ep4 ,"ep4"));
+		samples.add(\ep5 -> sampleClass.new(\ep5 ,"ep5"));
+		samples.add(\ep6 -> sampleClass.new(\ep6 ,"ep6"));
+		samples.add(\g1 -> sampleClass.new(\g1 ,"g1"));
+		samples.add(\g2 -> sampleClass.new(\g2 ,"g2"));
+		samples.add(\g3 -> sampleClass.new(\g3 ,"g3"));
+		samples.add(\ht -> sampleClass.new(\ht ,"ht"));
+		samples.add(\mt -> sampleClass.new(\mt ,"mt"));
+		samples.add(\lt -> sampleClass.new(\lt ,"lt"));
+		samples.add(\k1 -> sampleClass.new(\k1 ,"k1"));
+		samples.add(\k2 -> sampleClass.new(\k2 ,"k2"));
+		samples.add(\n1 -> sampleClass.new(\n1 ,"n1"));
+		samples.add(\n2 -> sampleClass.new(\n2 ,"n2"));
+		samples.add(\n3 -> sampleClass.new(\n3 ,"n3"));
+		samples.add(\n4 -> sampleClass.new(\n4 ,"n4"));
 
        this.populateInC ;
 	   this.populateClap11;
