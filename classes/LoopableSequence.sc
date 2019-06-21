@@ -22,7 +22,7 @@ LoopableSequence{   // or sequencer better name? NO
 	var <> debugMode = false;
 	var <> debugMode2 = false;
 	var <> synthsHaveBeenFreed = false;
-
+     var <> noActiveTimeChooser = false;  // for protocol consistency with trim4sample
 
 
 
@@ -44,6 +44,11 @@ LoopableSequence{   // or sequencer better name? NO
 		var me;
 		^ super.new.init;}
 
+reps{ arg aNum;
+		this.loopMax_(aNum-1);
+		this.loopTimes_(aNum-1)}
+
+
 init{ choosers = List.new;
 		timeline = List.new;
 		clocks = List.new;
@@ -53,7 +58,7 @@ init{ choosers = List.new;
 		loop = true;
 		// group = Group.new;
 		loopTimes = 1;
-		loopMax = 64;  // was 16whoa - not getting changed - who sets this? - ah its loop times we want....
+		loopMax = 256;  // was 16whoa - not getting changed - who sets this? - ah its loop times we want....
 	}
 
 

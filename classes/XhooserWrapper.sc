@@ -24,8 +24,14 @@ XhooserWrapper // Decorator (I think)
 	    var <> clocks;
 	     var <> outerClocks;
 	     var <>outbus ; // just for protocol compliance with sample
+	      var <> noActiveTimeChooser = false;  // for protocol consistency with trim4sample
 
 // aha- you can only put synths in groups - not choosers......
+
+
+	reps{ arg aNum;
+		this.loopableSequence.reps(aNum)
+	}
 
 	noActiveTimeLane{} // just to support trimSample expanded protocol from Lane
 

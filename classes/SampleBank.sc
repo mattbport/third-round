@@ -6,6 +6,8 @@ SampleBank{
 
 //=========  ALL CLASS METHODS  =====================
 
+//	WHy not just load al the samples in audio folder???
+
 // sample bank  populate stores sample instaces with a  buffer containging the wav
 	// warm up runs createsynthdef to run synth def to add the synthdef to server
 	// doesnt evey play redo that anyway? - no - just creaes synth
@@ -33,17 +35,21 @@ SampleBank{
 	}
 
 	*populate{
-		//trimIsEnabled.if({sampleClass = TrimSample}, {sampleClass = Sample});
-		// sampleClass = TrimSample;
+		this.populateBank1;
+		this.populateBank2;
+		this.createAndReadInBuffers
+	}
+
+	*populateBank1	{
 		"///////////////////////////////////".postln;
-		this.debug("Creating sample instances and loading into buffers from disk");
+		this.debug("Creating sample objects and loading from disk");
 		   trimIsEnabled.if(
 		{sampleClass = TrimSample4;
 		this.sampleClass.debug("Trim is enabled — using")},
 
 	    {sampleClass = Sample;
 		this.sampleClass.debug("Trim is disabled — using")});
-		samples = Dictionary.new( n: 64) ; //  colon syntax is arg keyword
+		samples = Dictionary.new( n: 128) ; //  colon syntax is arg keyword
 		                                                   //-based on how args declared
 		samples.add(\guitar -> sampleClass.new(\guitar, "gtr8"));
 		samples.add(\bass -> sampleClass.new(\bass, "bass4"));   // itry to get rid of redundant
@@ -70,7 +76,13 @@ SampleBank{
 		samples.add(\violin1 -> sampleClass.new(\violin1 ,"violin1"));
 		samples.add(\violin2 -> sampleClass.new(\violin2 ,"violin2"));
 		samples.add(\violinsilence -> sampleClass.new(\violinsilence ,"violinsilence"));
-		samples.add(\ep1 -> sampleClass.new(\ep1 ,"ep1"));
+	   this.populateInC ;
+	   this.populateClap11;
+
+	}
+
+	*populateBank2	{
+        samples.add(\ep1 -> sampleClass.new(\ep1 ,"ep1"));
 		samples.add(\ep2 -> sampleClass.new(\ep2 ,"ep2"));
 		samples.add(\ep3 -> sampleClass.new(\ep3 ,"ep3"));
 		samples.add(\ep4 -> sampleClass.new(\ep4 ,"ep4"));
@@ -88,10 +100,10 @@ SampleBank{
 		samples.add(\n2 -> sampleClass.new(\n2 ,"n2"));
 		samples.add(\n3 -> sampleClass.new(\n3 ,"n3"));
 		samples.add(\n4 -> sampleClass.new(\n4 ,"n4"));
+	}
 
-       this.populateInC ;
-	   this.populateClap11;
 
+*createAndReadInBuffers{
 		samples.keysValuesDo { |eachKey, eachValue|   eachValue.init};
 		"Wait before warming up".postln
 	}
@@ -111,16 +123,18 @@ SampleBank{
 
 
 	*warmUp{
-		this.debug("Creating synthDefs and sending to server - no synth creation yet");
+		this.debug("Compiling definitions and sending to server");
 		samples.keysValuesDo { |eachKey, eachValue|   eachValue.createSynthDef};
 		          }
 
 	*sampleDef{
 		arg sampleSymbol;
-		this.debug("Compiling synthDefs and storing on server");
+
 		samples.isNil.if{  "SampleBank not Loaded - using non-playable proxy sample".postln
 			^sampleSymbol};
-			^ samples.atFail(sampleSymbol, {"playable not found".postln})
+			this.debug(" Sample" + sampleSymbol.asString+" found & ready on server ");
+			^ samples.atFail(sampleSymbol, {"playable not found".postln});
+
 		       }
 
 	*at{ arg aKey;
@@ -131,7 +145,9 @@ SampleBank{
 		^ target.copy  // while debugging terry riley
 	}
 
-
+	// 	SampleBank.at(\n4).play
+//  SampleBank.at(\n4).createSynthDef.synth.play
+ // TrimSample4.new(\n4 ,"n4").createSynthDef.play
 
 *secsToBeats{ arg secs;
 	^ secs*  this.tempo }

@@ -151,7 +151,7 @@ Create and ass a Synth.  If aGroup is a Group add it at the head of THAT group.
 // synthdefs and some code  borrowed from github 44kwm20/ClappingMusic.sc
 // c = Clap2.new
 // c.warmUp
- //   z= c. loopOn.clap12.focus.play     (    TempoClock(2));
+ //   z= c. loopOn.clap12.focus.playmidi     (    TempoClock(2));
 //  z.stop
 // PBank.populate
 // PBank.warmUp

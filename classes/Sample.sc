@@ -11,6 +11,8 @@ Sample{                     // synthDef is creaed by warmup but sorta lives on s
 	    var <> outBus = 0;                   // -1 to 1 doents appear to be workig
 	    var  <> smartDuration;  // not need to play correctly. Need to report duration
 	                                         // correctly when controlled by external environment
+	   var  <> noActiveTimeChooser = true; // fof consistency with trimsample 4
+
 
 cleanUp {
 		// this.buffer.free;
@@ -29,9 +31,11 @@ withTrim {arg aTrimTool; }
 
 // ============= QUERYING AND SETTING =======
 hasLoop {
+		this.loop.ifNil{ this.loop_(false)}; // to help with debugging TrimSample4
 		^this.loop == true}
 
 hasNoLoop {
+		this.loop.ifNil{ this.loop_(false)}; // to help with debugging TrimSample4
 		^this.loop == false}
 
 loopOn {

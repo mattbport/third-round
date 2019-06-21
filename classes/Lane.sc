@@ -218,14 +218,29 @@ hasActiveTimeChooser{
 
 
 
-//=============   SETTERS  ====================
+//=============   INDIRECT SETTERS  ====================
 
-nest{arg aChooser;
+reps{ arg aNum;
+		this.sample.reps_(aNum)
+	}
+
+vol{ arg aNum;
+		this.sample.volume_(aNum)
+	}
+
+	//==========================================
+	// NESTING
+	//==========================================
+
+	nest{arg aChooser; // works just as well for loop seqs
 		var wrapper;
 		wrapper = XhooserWrapper.new;
 		wrapper.name_("containing" + aChooser.name);
 		wrapper.wrap(aChooser);
 		this.sample_(wrapper) }
+
+
+//=============   setters  ====================
 
 hardStopOn	{
 		this.stop_ (\hard)}
@@ -250,6 +265,7 @@ namedSample{
 trim{
 		arg aTrimTool;
 		this.sample.withTrim(aTrimTool);
+		this.debug("Updating synthdef for trim");
 		this.sample.createSynthDef;
 	}
 
@@ -262,13 +278,15 @@ namedClip{
 
 //============ ACTIONS ================
 
-	play{
-		//this.hasLoop.debug("value of has loop in play in Lane");
+	play{ // if chooser called this (& only chooser can), then we have no active chooser
+		// this.hasLoop.debug("value of has loop in play in Lane");
 		this.hasLoop.if( {this.sample.loopOn}, {this.sample.loopOff});
-         this.outBus.isNil.not.if { this.sample.outBus_(this.outBus)}; // stereo
+        this.outBus.isNil.not.if { this.sample.outBus_(this.outBus)}; // stereo
 		//this.outBus.debug("In Lane"); // stereo
+
+		this.sample.noActiveTimeChooser_(true) ;
+		//this.sample.noActiveTimeChooser.debug("this.sample.noActiveTimeChooser in lane");
 		this.tempo.isNil.if { ^  this.sample.play };
-		this.sample.noActiveTimeChooser ;
 		this.sample.play(TempoClock.new (this.tempo) )
 
 		//this.isNull.if {^nil};
@@ -288,7 +306,8 @@ resume {
 playWithChosenTimeLaneForParent{   //KEY METHOD - NB  TAKES A PARAMETER
 		arg chosenTimeLane, aParent;      // can only be called by chooser
 		var timeLaneDuration;
-
+		//this.debug("playWithChosenTimeLaneForParent in LANE");
+			this.sample.noActiveTimeChooser_(false) ;
 		timeLaneDuration = chosenTimeLane.duration;
 		this.isNull.if {^nil};
 		this.sample.isNil.if { debug("Sample not loaded") };
