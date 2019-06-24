@@ -96,10 +96,10 @@ SampleBank.tempo_(122/60);
 Server.killAll;
 s.boot;
 s.freeAll;
+SampleBank.disableTrim;
 SampleBank.populate;
 SampleBank.warmUp;
 SampleBank.tempo_(61/60);
-
 
 (
 
@@ -153,7 +153,7 @@ SampleBank.tempo_(61/60);
 ~parent.play;
 )
 
-
+~righthand.play
 
 
 
