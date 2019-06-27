@@ -116,13 +116,11 @@ SampleBank.tempo_(61/60);
 ~parent.noseCone_(inf);
 ~parent.addLane(Lane.new.nest(~piano).loopOn.hardStopOn.weight_(1));
 ~parent.addLane(Lane.new.nest(~violin).loopOn.hardStopOn.weight_(1));
-
-~parent.play;
 )
 
 ~righthand.play
 
-
+~parent.play;
 
 /////////////// TEST 1
 // Fails with Message 'myGroup' not understood
