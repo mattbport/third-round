@@ -328,8 +328,8 @@ SampleBank.tempo_(500/60);
 ~glock.addLane(Lane.new.namedSample(\g3).loopOff.hardStopOn.weight_(1));
 ~gtime = TimeChooser.new;
 ~gtime.noseCone_(1);
-~gtime.addLane(TimeLane.new.beats_(64));
-~gtime.addLane(TimeLane.new.beats_(48));
+~gtime.addLane(TimeLane.new.beats_(64).weight_(1));
+~gtime.addLane(TimeLane.new.beats_(96).weight_(2));
 ~glock.timeChooser_(~gtime);
 
 
