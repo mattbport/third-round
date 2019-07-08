@@ -32,7 +32,7 @@ SampleBank.tempo_(122/60);
 ~ch1.noseCone_(2);
 ~ch1.addLane( Lane.new.weight_(1).namedSample(\drums).loopOn);
 ~ch1.addLane( Lane.new.weight_(2).namedSample(\bass).loopOn);
-~ch1.addLane( Lane.new.weight_(inf).namedSample(\vox).loopOn);
+~ch1.addLane( Lane.new.weight_(inf).namedSample(\vox).loopOn); // .softStopOn
 ~tc1 = TimeChooser.new;
 ~tc1.noseCone_(1);
 ~tc1.addLane( TimeLane.new.weight_(1).beats_(4*4));
