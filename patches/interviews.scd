@@ -121,7 +121,7 @@ SampleBank.tempo_(61/60);
 
 
 // 6.1 - no Time Choosers
-(
+/*(
 
 ~lefthand = Xhooser.new;
 ~lefthand.name_("lefthand");
@@ -154,7 +154,7 @@ SampleBank.tempo_(61/60);
 ~parent.addLane(Lane.new.nest(~violin).loopOn.hardStopOn.weight_(1));
 
 ~parent.play;
-)
+)*/
 
 
 
@@ -200,7 +200,7 @@ SampleBank.tempo_(61/60);
 ~violin.addLane(Lane.new.namedSample(\violinsilence).loopOff.hardStopOn.weight_(2));
 ~violintime= TimeChooser.new;
 ~violintime.noseCone_(1);
-~violintime.addLane(TimeLane.new.beats_(8)); // sample is 8 beats long. 10 works nicely
+~violintime.addLane(TimeLane.new.beats_(10)); // sample is 8 beats long. 10 works nicely
 ~violin.timeChooser_(~violintime);
 
 ~parent = Xhooser.new;
@@ -338,7 +338,7 @@ SampleBank.tempo_(500/60);
 ~parent.noseCone_(inf);
 ~parent.addLane(Lane.new.nest(~perc).loopOn.hardStopOn.weight_(1));
 ~parent.addLane(Lane.new.nest(~ep).loopOn.hardStopOn.weight_(1));
-~parent.addLane(Lane.new.nest(~glock).loopOn.hardStopOn.weight_(1));
+~parent.addLane(Lane.new.nest(~glock).loopOn.hardStopOn.weight_(0));
 ~parenttime = TimeChooser.new;
 ~parenttime.noseCone_(1);
 ~parenttime.addLane(TimeLane.new.beats_(256));
