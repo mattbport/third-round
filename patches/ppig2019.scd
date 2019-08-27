@@ -128,13 +128,6 @@ SampleBank.tempo_(61/60);
 // |T|r|i|p|l|e| |n|e|s|t|e|d| |e|x|a|m|p|l|e|
 // +-+-+-+-+-+-+ +-+-+-+-+-+-+ +-+-+-+-+-+-+-+
 
-
-
-// +-+-+-+-+-+-+ +-+-+-+-+-+-+ +-+-+-+-+-+-+-+
-// |T|r|i|p|l|e| |n|e|s|t|e|d| |e|x|a|m|p|l|e|
-// +-+-+-+-+-+-+ +-+-+-+-+-+-+ +-+-+-+-+-+-+-+
-
-
 Server.killAll;
 s.boot;
 s.freeAll;
@@ -145,6 +138,10 @@ SampleBank.tempo_(500/60);
 
 
 (
+
+Server.default.record;
+
+
 ~beep = Xhooser.new;
 ~beep.name_("beep");
 ~beep.noseCone_(1);
@@ -153,10 +150,8 @@ SampleBank.tempo_(500/60);
 ~beep.addLane(Lane.new.namedSample(\n3).loopOff.hardStopOn.weight_(1));
 ~beeptime = TimeChooser.new;
 ~beeptime.noseCone_(1);
-~beeptime.addLane(TimeLane.new.beats_(1));
-// ~beeptime.addLane(TimeLane.new.beats_(1.5));
-~beeptime.addLane(TimeLane.new.beats_(2));
-// ~beeptime.addLane(TimeLane.new.beats_(2.5));
+~beeptime.addLane(TimeLane.new.beats_(1)); // <
+~beeptime.addLane(TimeLane.new.beats_(2)); // <
 ~beeptime.addLane(TimeLane.new.beats_(4));
 ~beep.timeChooser_(~beeptime);
 
@@ -167,6 +162,7 @@ SampleBank.tempo_(500/60);
 ~kick.addLane(Lane.new.namedSample(\k2).loopOff.hardStopOn.weight_(1));
 ~kicktime = TimeChooser.new;
 ~kicktime.noseCone_(1);
+// ~kicktime.addLane(TimeLane.new.beats_(2).weight_(1)); // <
 ~kicktime.addLane(TimeLane.new.beats_(4).weight_(1));
 ~kicktime.addLane(TimeLane.new.beats_(8).weight_(1));
 ~kick.timeChooser_(~kicktime);
@@ -181,6 +177,7 @@ SampleBank.tempo_(500/60);
 ~tomtime.noseCone_(1);
 ~tomtime.addLane(TimeLane.new.beats_(10).weight_(2));
 ~tomtime.addLane(TimeLane.new.beats_(5).weight_(1));
+// ~tomtime.addLane(TimeLane.new.beats_(4).weight_(1)); // <
 ~toms.timeChooser_(~tomtime);
 
 ~perc = Xhooser.new;
