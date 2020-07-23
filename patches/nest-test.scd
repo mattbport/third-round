@@ -341,7 +341,7 @@ d = Buffer.read(s, "/Users/matt/Documents/GitHub/third-round/classes/audio/bv8.w
 	arg now;
 	var griddrums = 8 * 16;
 	var gridvox = 8 * 8;
-	var gridbv = 8 * 2;
+	var gridbv = 8 * 4;
 	var gridbass = 8 * 1;
 	var pulsedrums = Impulse.kr((a.sampleRate/a.numFrames)*griddrums);
 	var pulsevox = Impulse.kr((b.sampleRate/b.numFrames)*gridvox);
@@ -357,7 +357,7 @@ d = Buffer.read(s, "/Users/matt/Documents/GitHub/third-round/classes/audio/bv8.w
 	var vox = PlayBuf.ar(2, b.bufnum, BufRateScale.kr(b.bufnum), pulsevox, (b.numFrames/gridvox)*anchorvox, 0, doneAction:0)*0.6;
 	var bv = PlayBuf.ar(2, d.bufnum, BufRateScale.kr(d.bufnum), pulsebv, (d.numFrames/gridbv)*anchorbv, 0, doneAction:0)*0.4;
 
-drums2+drums1+bass+bv
+bv+vox+bass+drums2
 
 }.play
 )
