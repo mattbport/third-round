@@ -357,11 +357,9 @@ d = Buffer.read(s, "/Users/matt/Documents/GitHub/third-round/classes/audio/bv8.w
 	var vox = PlayBuf.ar(2, b.bufnum, BufRateScale.kr(b.bufnum), pulsevox, (b.numFrames/gridvox)*anchorvox, 0, doneAction:0)*0.6;
 	var bv = PlayBuf.ar(2, d.bufnum, BufRateScale.kr(d.bufnum), pulsebv, (d.numFrames/gridbv)*anchorbv, 0, doneAction:0)*0.4;
 
-bv+vox+bass+drums2
-
+drums1 + drums2 + bass + vox
 }.play
 )
-
 
 Server.killAll;
 s.boot;

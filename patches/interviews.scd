@@ -169,7 +169,7 @@ SampleBank.tempo_(61/60);
 ~lefthand.addLane(Lane.new.namedSample(\lefthand2).loopOff.hardStopOn.weight_(1));
 ~lefttime = TimeChooser.new;
 ~lefttime.noseCone_(1);
-~lefttime.addLane(TimeLane.new.beats_(3)); // sample is 3 beats long. 3.5 works nicely
+~lefttime.addLane(TimeLane.new.beats_(3)); // sample is 3 beats long
 ~lefthand.timeChooser_(~lefttime);
 
 ~righthand = Xhooser.new;
@@ -184,7 +184,7 @@ SampleBank.tempo_(61/60);
 
 ~piano = Xhooser.new;
 ~piano.name_("piano");
-~piano.noseCone_(2);
+~piano.noseCone_(inf);
 ~piano.addLane(Lane.new.nest(~lefthand).loopOn.hardStopOn.weight_(1));
 ~piano.addLane(Lane.new.nest(~righthand).loopOn.hardStopOn.weight_(1));
 // ~pianotime = TimeChooser.new;
